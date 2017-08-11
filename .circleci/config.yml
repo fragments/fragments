@@ -1,0 +1,51 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: golang:1.8
+    working_directory: /go/src/github.com/fragments/fragments
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-dep-{{ checksum "Gopkg.lock" }}
+
+      - run:
+          name: install dependencies
+          command: |
+            go get github.com/golang/dep/cmd/dep
+            dep ensure -v
+
+      - save_cache:
+          key: v1-dep-{{ checksum "Gopkg.lock" }}
+          paths:
+            - vendor
+
+      - run:
+          name: go vet
+          command: |
+            go list ./... | grep -v vendor | xargs go vet -v
+
+      - run:
+          name: check code
+          command: |
+            go get honnef.co/go/tools/cmd/megacheck
+            go list ./... | grep -v vendor | xargs megacheck
+
+      - run:
+          name: go lint
+          command: |
+            go get -u github.com/golang/lint/golint
+            go list ./... | grep -v vendor | xargs golint
+
+      - run:
+          name: configure build
+          command: |
+            export CGO_ENABLED=0
+            mkdir -p /out
+
+      - run:
+          name: build
+          command: |
+            go build -ldflags="-s -w" -o /out/fragments ./cmd/fragments
