@@ -1,0 +1,3 @@
+[[constraint]]
+  revision = "b26b538f693051ac6518e65672de3144ce3fbedc"
+  name = "github.com/spf13/cobra"
