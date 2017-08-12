@@ -1,0 +1,11 @@
+type: function
+meta:
+  name: test
+  labels:
+    test1: "abc"
+    test2: "true"
+spec:
+  runtime: go
+  aws:
+    timeout: 3
+    memory: 256

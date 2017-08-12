@@ -1,0 +1,6 @@
+type: function
+spec:
+  runtime: go
+  aws:
+    timeout: 3
+    memory: 256

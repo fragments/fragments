@@ -1,0 +1,9 @@
+type: function
+meta:
+  labels:
+    "name": "nope"
+spec:
+  runtime: go
+  aws:
+    timeout: 3
+    memory: 256

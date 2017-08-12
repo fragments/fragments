@@ -1,0 +1,23 @@
+[
+  {
+    "type": "function",
+    "meta": {
+      "name": "test1-json"
+    },
+    "spec": {
+      "runtime": "go",
+      "aws": {
+        "timeout": 10
+      }
+    }
+  },
+  {
+    "type": "function",
+    "meta": {
+      "name": "test2-json"
+    },
+    "spec": {
+      "runtime": "nodejs"
+    }
+  }
+]

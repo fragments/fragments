@@ -1,0 +1,11 @@
+type: function
+meta:
+  name: test1
+spec:
+  runtime: go
+---
+type: function
+meta:
+  name: test2
+spec:
+  runtime: nodejs

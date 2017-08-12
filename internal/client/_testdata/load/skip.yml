@@ -1,0 +1,11 @@
+# this file does not have a type
+meta:
+  name: test
+  labels:
+    test1: "abc"
+    test2: "true"
+spec:
+  runtime: go
+  aws:
+    timeout: 3
+    memory: 256

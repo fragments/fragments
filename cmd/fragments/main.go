@@ -9,5 +9,7 @@ func main() {
 		Use: "fragments",
 	}
 
+	cmd.AddCommand(newApplyCommand())
+
 	cmd.Execute()
 }
