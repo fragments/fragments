@@ -23,21 +23,27 @@ jobs:
             - vendor
 
       - run:
-          name: go vet
+          name: vet
           command: |
             go list ./... | grep -v vendor | xargs go vet -v
 
       - run:
-          name: check code
+          name: check
           command: |
             go get honnef.co/go/tools/cmd/megacheck
             go list ./... | grep -v vendor | xargs megacheck
 
       - run:
-          name: go lint
+          name: lint
           command: |
             go get -u github.com/golang/lint/golint
             go list ./... | grep -v vendor | xargs golint
+
+      - run:
+          name: test
+          command: |
+            bash scripts/test.sh
+            bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
 
       - run:
           name: configure build
