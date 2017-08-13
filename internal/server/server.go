@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/fragments/fragments/internal/backend"
 	"github.com/pkg/errors"
 )
 
 // Server is the fragments server that accepts resources and keeps them in the
 // store.
 type Server struct {
+	Backend backend.KV
 }
 
 // PutFunctionInput contains parameters for creating or updating function.
