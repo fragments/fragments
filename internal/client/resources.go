@@ -5,9 +5,12 @@ import (
 	"fmt"
 )
 
+// ResourceType defines the resource type. The type is read from the spec file
+// and determines how the resource is interpreted
 type ResourceType string
 
 const (
+	// ResourceTypeFunction is the type for a function
 	ResourceTypeFunction ResourceType = "function"
 )
 

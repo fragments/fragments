@@ -33,14 +33,14 @@ func Checksum(files, ignore []string) ([]byte, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to read file")
 		}
-		defer file.Close()
+		defer file.Close() // nolint: errcheck
 
 		_, err = io.Copy(sha, file)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to add to hash")
 		}
 
-		added += 1
+		added++
 	}
 
 	if added == 0 {

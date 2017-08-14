@@ -20,7 +20,9 @@ func Load(file string) ([]Resource, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not load file")
 	}
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 
 	data, err := ioutil.ReadAll(f)
 	if err != nil {

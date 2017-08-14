@@ -18,7 +18,7 @@ type Function struct {
 	AWS *FunctionAWS
 }
 
-// FunctionAWSSpec contains AWS function (Lambda) specific configuration info
+// FunctionAWS contains AWS function (Lambda) specific configuration info
 type FunctionAWS struct {
 	// Timeout is the timeout in seconds for the function
 	Timeout int64

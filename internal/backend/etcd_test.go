@@ -90,7 +90,9 @@ func TestNewETCDClient(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			defer client.Close()
+			defer func() {
+				_ = client.Close()
+			}()
 		})
 	}
 }
@@ -143,7 +145,9 @@ func TestPut(t *testing.T) {
 
 	client, err := NewETCDClient([]string{testETCDEndpoint}, 1*time.Second)
 	require.NoError(t, err)
-	defer client.Close()
+	defer func() {
+		_ = client.Close()
+	}()
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
@@ -208,7 +212,9 @@ func TestGet(t *testing.T) {
 
 	client, err := NewETCDClient([]string{testETCDEndpoint}, 1*time.Second)
 	require.NoError(t, err)
-	defer client.Close()
+	defer func() {
+		_ = client.Close()
+	}()
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {

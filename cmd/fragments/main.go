@@ -11,5 +11,5 @@ func main() {
 
 	cmd.AddCommand(newApplyCommand())
 
-	cmd.Execute()
+	_ = cmd.Execute()
 }

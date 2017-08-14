@@ -13,7 +13,7 @@ jobs:
             - v1-dep-{{ checksum "Gopkg.lock" }}
 
       - run:
-          name: install dependencies
+          name: Install dependencies
           command: |
             go get github.com/golang/dep/cmd/dep
             dep ensure -v
@@ -25,21 +25,35 @@ jobs:
             - /go/pkg/dep
 
       - run:
-          name: vet
+          name: Install gometalinter
           command: |
-            go list ./... | grep -v vendor | xargs go vet -v
+            go get -u github.com/alecthomas/gometalinter
+            gometalinter --install --force
 
       - run:
-          name: check
+          name: Run gometalinter
           command: |
-            go get honnef.co/go/tools/cmd/megacheck
-            go list ./... | grep -v vendor | xargs megacheck
-
-      - run:
-          name: lint
-          command: |
-            go get -u github.com/golang/lint/golint
-            go list ./... | grep -v vendor | xargs golint
+            gometalinter \
+              --vendor \
+              --vendored-linters \
+              --sort=severity \
+              --aggregate \
+              --disable-all \
+              --enable=errcheck \
+              --enable=gas \
+              --enable=goconst \
+              --enable=golint \
+              --enable=ineffassign \
+              --enable=interfacer \
+              --enable=megacheck \
+              --enable=misspell \
+              --enable=structcheck \
+              --enable=unconvert \
+              --enable=varcheck \
+              --enable=vet \
+              --enable=vetshadow \
+              --deadline=300s \
+              ./...
 
       - run:
           name: Install netcat
@@ -59,7 +73,7 @@ jobs:
             echo Failed waiting for Postgres && exit 1
 
       - run:
-          name: test
+          name: Test
           environment:
             ETCD_TEST_LISTEN_PORT: 2379
             ETCD_TEST_PEER_PORT: 2380
@@ -68,12 +82,12 @@ jobs:
             bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
 
       - run:
-          name: configure build
+          name: Configure build
           command: |
             export CGO_ENABLED=0
             mkdir -p /out
 
       - run:
-          name: build
+          name: Build
           command: |
             go build -ldflags="-s -w" -o /out/fragments ./cmd/fragments

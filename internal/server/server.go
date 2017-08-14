@@ -27,6 +27,7 @@ type PutFunctionOutput struct {
 // PutFunction creates or updates a function. In case the function already
 // exists it is updated. If not, source upload is requested.
 func (s *Server) PutFunction(ctx context.Context, input *PutFunctionInput) (*PutFunctionOutput, error) {
+	_ = ctx
 	fmt.Printf("%+v\n", input)
 	return nil, errors.New("put function: not implemented")
 }
