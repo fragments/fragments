@@ -2,71 +2,23 @@ package backend
 
 import (
 	"context"
-	"io/ioutil"
-	"net"
-	"net/url"
+	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
-	"github.com/coreos/etcd/embed"
-	"github.com/coreos/pkg/capnslog"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// testETCDServer starts an embedded ETCD instance for unit testing purposes.
-// Multiple instances can be created in parallel. No further dependencies are
-// required from the host.
-// Returns addresses to connect to and a cleanup function that shuts down the
-// ETCD server and cleans up created resources.
-func testETCDServer(t *testing.T) ([]string, func()) {
-	tmp, err := ioutil.TempDir("", "etcd-test")
-	if err != nil {
-		t.Fatal(errors.Wrap(err, "could not create temp dir for etcd data"))
-	}
-
-	// Find random port
-	l, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(errors.Wrap(err, "could not allocate local address"))
-	}
-	listenURL, _ := url.Parse("http://" + l.Addr().String())
-	l.Close()
-
-	// Disable logging from embedded etcd
-	capnslog.SetGlobalLogLevel(capnslog.CRITICAL)
-
-	cfg := embed.NewConfig()
-	cfg.Dir = tmp
-	cfg.LCUrls = []url.URL{*listenURL}
-	cfg.ACUrls = []url.URL{*listenURL}
-	e, err := embed.StartEtcd(cfg)
-	if err != nil {
-		t.Fatal(errors.Wrap(err, "could not start embedded ETCD"))
-	}
-
-	select {
-	case <-e.Server.ReadyNotify():
-	case <-time.After(10 * time.Second):
-		e.Server.Stop()
-		t.Fatal("ETCD took too long to start")
-	}
-
-	return []string{listenURL.String()}, func() {
-		e.Close()
-		if err := os.RemoveAll(tmp); err != nil {
-			t.Error(errors.Wrap(err, "could not clean up test ETCD data dir"))
-		}
-	}
-}
+var testETCDEndpoint = fmt.Sprintf("127.0.0.1:%s", os.Getenv("ETCD_TEST_LISTEN_PORT"))
 
 // testClient creates an ETCD client that can be used for preparing test data
-func testClient(t *testing.T, endpoints []string) (*clientv3.Client, func()) {
+func testClient(t *testing.T) (*clientv3.Client, func()) {
 	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   endpoints,
+		Endpoints:   []string{testETCDEndpoint},
 		DialTimeout: 3 * time.Second,
 	})
 	if err != nil {
@@ -76,6 +28,14 @@ func testClient(t *testing.T, endpoints []string) (*clientv3.Client, func()) {
 		if err := cli.Close(); err != nil {
 			t.Fatal(errors.Wrap(err, "could not close test ETCD client"))
 		}
+	}
+}
+
+func testClean(t *testing.T, client *clientv3.Client) {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+	if _, err := client.Delete(ctx, "", clientv3.WithPrefix()); err != nil {
+		t.Fatal(errors.Wrap(err, "could not clean test ETCD db"))
 	}
 }
 
@@ -101,9 +61,6 @@ func testPut(t *testing.T, client *clientv3.Client, key, value string) {
 }
 
 func TestNewETCDClient(t *testing.T) {
-	endpoints, cleanup := testETCDServer(t)
-	defer cleanup()
-
 	tests := []struct {
 		TestName  string
 		Endpoints []string
@@ -121,13 +78,13 @@ func TestNewETCDClient(t *testing.T) {
 		},
 		{
 			TestName:  "OK",
-			Endpoints: endpoints,
+			Endpoints: []string{testETCDEndpoint},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
-			client, err := NewETCDClient(test.Endpoints)
+			client, err := NewETCDClient(test.Endpoints, 250*time.Millisecond)
 			if test.Error {
 				require.Error(t, err)
 				return
@@ -139,11 +96,10 @@ func TestNewETCDClient(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
-	endpoints, cleanup := testETCDServer(t)
-	defer cleanup()
-	tc, close := testClient(t, endpoints)
+	tc, close := testClient(t)
 	defer close()
 
+	testClean(t, tc)
 	testPut(t, tc, "bar", "bar")
 
 	ctx := context.Background()
@@ -185,7 +141,7 @@ func TestPut(t *testing.T) {
 		},
 	}
 
-	client, err := NewETCDClient(endpoints)
+	client, err := NewETCDClient([]string{testETCDEndpoint}, 1*time.Second)
 	require.NoError(t, err)
 	defer client.Close()
 
@@ -206,11 +162,10 @@ func TestPut(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	endpoints, cleanup := testETCDServer(t)
-	defer cleanup()
-	tc, close := testClient(t, endpoints)
+	tc, close := testClient(t)
 	defer close()
 
+	testClean(t, tc)
 	testPut(t, tc, "foo", "bar")
 
 	ctx := context.Background()
@@ -251,7 +206,7 @@ func TestGet(t *testing.T) {
 		},
 	}
 
-	client, err := NewETCDClient(endpoints)
+	client, err := NewETCDClient([]string{testETCDEndpoint}, 1*time.Second)
 	require.NoError(t, err)
 	defer client.Close()
 

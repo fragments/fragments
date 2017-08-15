@@ -16,10 +16,10 @@ type ETCD struct {
 
 // NewETCDClient returns a new ETCD v3 client. Returns an error in case the
 // connection to all endpoints fails.
-func NewETCDClient(endpoints []string) (*ETCD, error) {
+func NewETCDClient(endpoints []string, dialTimeout time.Duration) (*ETCD, error) {
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   endpoints,
-		DialTimeout: 3 * time.Second,
+		DialTimeout: dialTimeout,
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "could not connect to etcd")

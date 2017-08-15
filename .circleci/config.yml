@@ -3,6 +3,7 @@ jobs:
   build:
     docker:
       - image: golang:1.8
+      - image: quay.io/coreos/etcd
     working_directory: /go/src/github.com/fragments/fragments
     steps:
       - checkout
@@ -40,7 +41,27 @@ jobs:
             go list ./... | grep -v vendor | xargs golint
 
       - run:
+          name: Install netcat
+          command: |
+            apt-get update && apt-get -y install netcat && apt-get clean
+
+      - run:
+          name: Wait for services
+          command: |
+            for i in `seq 1 10`;
+            do
+              echo "Checking ETCD"
+              nc -z localhost 2379 && echo Ok && exit 0
+              echo -n .
+              sleep 1
+            done
+            echo Failed waiting for Postgres && exit 1
+
+      - run:
           name: test
+          environment:
+            ETCD_TEST_LISTEN_PORT: 2379
+            ETCD_TEST_PEER_PORT: 2380
           command: |
             bash scripts/test.sh
             bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
