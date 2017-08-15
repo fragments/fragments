@@ -22,6 +22,7 @@ jobs:
           key: v1-dep-{{ checksum "Gopkg.lock" }}
           paths:
             - vendor
+            - /go/pkg/dep
 
       - run:
           name: vet
