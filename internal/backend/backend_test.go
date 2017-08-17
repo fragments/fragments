@@ -8,13 +8,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/coreos/etcd/clientv3"
+	etcdapi "github.com/coreos/etcd/clientv3"
+	vaultapi "github.com/hashicorp/vault/api"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 var testETCDEndpoint = fmt.Sprintf("127.0.0.1:%s", os.Getenv("ETCD_TEST_LISTEN_PORT"))
+var testVaultEndpoint = fmt.Sprintf("http://127.0.0.1:%s", os.Getenv("VAULT_TEST_PORT"))
 
 type testTarget struct {
 	TargetName   string
@@ -29,7 +31,7 @@ func getTestTargets(t *testing.T) []testTarget {
 		{
 			TargetName: "ETCD",
 			TestClient: func(t *testing.T) interface{} {
-				cli, err := clientv3.New(clientv3.Config{
+				cli, err := etcdapi.New(etcdapi.Config{
 					Endpoints:   []string{testETCDEndpoint},
 					DialTimeout: 3 * time.Second,
 				})
@@ -39,20 +41,20 @@ func getTestTargets(t *testing.T) []testTarget {
 				return cli
 			},
 			New: func(testClient interface{}) KV {
-				cli := testClient.(*clientv3.Client)
-				if _, err := cli.Delete(context.Background(), "", clientv3.WithPrefix()); err != nil {
+				cli := testClient.(*etcdapi.Client)
+				if _, err := cli.Delete(context.Background(), "", etcdapi.WithPrefix()); err != nil {
 					t.Fatal(errors.Wrap(err, "could not clean test ETCD db"))
 				}
 				return &ETCD{cli}
 			},
 			AddTestValue: func(t *testing.T, testClient interface{}, key, value string) {
-				cli := testClient.(*clientv3.Client)
+				cli := testClient.(*etcdapi.Client)
 				if _, err := cli.Put(context.Background(), key, value); err != nil {
 					t.Fatal(errors.Wrapf(err, "could not put test ETCD value: %s", key))
 				}
 			},
 			GetTestValue: func(t *testing.T, testClient interface{}, key string) string {
-				cli := testClient.(*clientv3.Client)
+				cli := testClient.(*etcdapi.Client)
 				res, err := cli.Get(context.Background(), key)
 				if err != nil {
 					t.Fatal(errors.Wrapf(err, "could not get test ETCD value: %s", key))
@@ -61,6 +63,60 @@ func getTestTargets(t *testing.T) []testTarget {
 					t.Fatalf("test ETCD get did not return any values: %s", key)
 				}
 				return string(res.Kvs[0].Value)
+			},
+		},
+		{
+			TargetName: "Vault",
+			TestClient: func(t *testing.T) interface{} {
+				cli, err := vaultapi.NewClient(&vaultapi.Config{
+					Address: testVaultEndpoint,
+				})
+				cli.SetToken(os.Getenv("VAULT_TEST_ROOT_TOKEN"))
+				if err != nil {
+					t.Fatal(errors.Wrap(err, "could not create test Vault client"))
+				}
+				return cli
+			},
+			New: func(testClient interface{}) KV {
+				cli := testClient.(*vaultapi.Client)
+				list, err := cli.Logical().List("secret/")
+				if err != nil {
+					t.Fatal(errors.Wrap(err, "could not list test Vault secrets for clear"))
+				}
+				if list != nil {
+					keys := list.Data["keys"].([]interface{})
+					for _, k := range keys {
+						if _, err := cli.Logical().Delete(fmt.Sprintf("secret/%s", k)); err != nil {
+							t.Fatal(errors.Wrapf(err, "coult not clear test Vault data: failed to delete %s", k))
+						}
+					}
+				}
+				return &Vault{
+					client: cli,
+				}
+			},
+			AddTestValue: func(t *testing.T, testClient interface{}, key, value string) {
+				cli := testClient.(*vaultapi.Client)
+				data := wrapVaultData(value)
+				_, err := cli.Logical().Write(fmt.Sprintf("secret/%s", key), data)
+				if err != nil {
+					t.Fatal(errors.Wrapf(err, "%s: could not write test Vault data", key))
+				}
+			},
+			GetTestValue: func(t *testing.T, testClient interface{}, key string) string {
+				cli := testClient.(*vaultapi.Client)
+				s, err := cli.Logical().Read(fmt.Sprintf("secret/%s", key))
+				if err != nil {
+					t.Fatal(errors.Wrapf(err, "%s: could not read test Vault data", key))
+				}
+				if s == nil {
+					t.Fatalf("test Vault get did not return any values: %s", key)
+				}
+				value, err := unwrapVaultData(s.Data)
+				if err != nil {
+					t.Fatalf("vault: could not read %s: data does not contain %s", key, vaultDataKey)
+				}
+				return value
 			},
 		},
 	}
