@@ -38,10 +38,13 @@ jobs:
 
       - run:
           name: Run gometalinter
+          environment:
+            CGO_ENABLED: 0
           command: |
             gometalinter \
               --vendor \
               --vendored-linters \
+              --skip internal/filestore/mocks \
               --sort=severity \
               --aggregate \
               --disable-all \
