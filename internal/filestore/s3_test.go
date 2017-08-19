@@ -1,3 +1,5 @@
+//go:generate mockery -dir ../../vendor/github.com/aws/aws-sdk-go/service/s3/s3iface -all
+
 package filestore
 
 import (
