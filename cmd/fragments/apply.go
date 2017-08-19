@@ -13,6 +13,7 @@ import (
 
 	"github.com/fragments/fragments/internal/client"
 	"github.com/fragments/fragments/internal/server"
+	"github.com/fragments/fragments/internal/state"
 	"github.com/golang/sync/errgroup"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -158,9 +159,9 @@ func applyFunction(ctx context.Context, srv *server.Server, meta *client.Meta, f
 
 	// Construct request
 	input := &server.PutFunctionInput{
-		Checksum: hex.EncodeToString(shasum),
-		Function: server.Function{
-			Meta: server.Meta{
+		Function: state.Function{
+			Checksum: hex.EncodeToString(shasum),
+			Meta: state.Meta{
 				Name:   meta.Name,
 				Labels: meta.Labels,
 			},
@@ -168,7 +169,7 @@ func applyFunction(ctx context.Context, srv *server.Server, meta *client.Meta, f
 		},
 	}
 	if spec.AWS != nil {
-		input.Function.AWS = &server.FunctionAWS{
+		input.Function.AWS = &state.FunctionAWS{
 			Timeout: spec.AWS.Timeout,
 			Memory:  spec.AWS.Memory,
 		}

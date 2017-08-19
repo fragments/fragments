@@ -1,4 +1,4 @@
-package server
+package state
 
 // Meta contains metadata for a resource
 type Meta struct {
@@ -14,6 +14,9 @@ type Function struct {
 	Meta Meta
 	// Runtime is the function runtime
 	Runtime string
+	// Checksum is the checksum calculated by the client of the source files for
+	// the function
+	Checksum string
 	// AWS is the Amazon Web Services specific configuration for the function
 	AWS *FunctionAWS
 }

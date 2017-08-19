@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/fragments/fragments/internal/backend"
+	"github.com/fragments/fragments/internal/state"
 	"github.com/pkg/errors"
 )
 
@@ -16,8 +17,7 @@ type Server struct {
 
 // PutFunctionInput contains parameters for creating or updating function.
 type PutFunctionInput struct {
-	Checksum string
-	Function Function
+	Function state.Function
 }
 
 // PutFunctionOutput is the result of putting a new function.
