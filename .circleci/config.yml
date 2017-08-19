@@ -62,6 +62,7 @@ jobs:
               --enable=vet \
               --enable=vetshadow \
               --deadline=300s \
+              --concurrency=4 \
               ./...
 
       - run:
