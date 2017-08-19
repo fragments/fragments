@@ -1,3 +1,5 @@
+//go:generate mockery -name KV
+
 package backend
 
 import (
@@ -18,8 +20,8 @@ type KV interface {
 
 // ErrNotFound represents an error of a key that was not found
 type ErrNotFound struct {
-	key string
+	Key string
 }
 
 // Error returns the error string for a not found error
-func (e *ErrNotFound) Error() string { return fmt.Sprintf("key not found: %s", e.key) }
+func (e *ErrNotFound) Error() string { return fmt.Sprintf("key not found: %s", e.Key) }
