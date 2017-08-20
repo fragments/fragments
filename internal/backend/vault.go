@@ -34,11 +34,11 @@ func unwrapVaultData(input map[string]interface{}) (string, error) {
 	return v, nil
 }
 
-// NewVault creates a new Vault client and connects to the Vault server
+// NewVaultClient creates a new Vault client and connects to the Vault server
 // The environment variable VAULT_TOKEN is read automatically to authenticate
 // the client.
 // Returns an error if the address is not in a valid url.
-func NewVault(address string) (*Vault, error) {
+func NewVaultClient(address string) (*Vault, error) {
 	if address == "" {
 		return nil, errors.New("no address supplied")
 	}

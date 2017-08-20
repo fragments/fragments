@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewVault(t *testing.T) {
+func TestNewVaultClient(t *testing.T) {
 	tests := []struct {
 		TestName string
 		Address  string
@@ -30,7 +30,7 @@ func TestNewVault(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
-			_, err := NewVault(test.Address)
+			_, err := NewVaultClient(test.Address)
 			if test.Error {
 				require.Error(t, err)
 				return
