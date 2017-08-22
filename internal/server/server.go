@@ -65,7 +65,31 @@ func (s *Server) PutFunction(ctx context.Context, input *state.Function) (*Uploa
 // request is stored as a PendingUpload in the store so it can be retrieved
 // when the client confirms the upload.
 func (s *Server) requestUpload(ctx context.Context, input *state.Function, existing *state.Function) (*UploadRequest, error) {
-	return nil, errors.New("not implemented")
+	token := s.GenerateToken()
+
+	url, err := s.SourceStore.NewUploadURL(token)
+	if err != nil {
+		return nil, errors.New("could not create upload url")
+	}
+
+	pendingUpload := &state.PendingUpload{
+		Filename: token,
+		Function: input,
+	}
+	if existing != nil {
+		pendingUpload.PreviousFilename = existing.SourceFilename
+	}
+
+	if err := state.PutPendingUpload(ctx, s.StateStore, token, pendingUpload); err != nil {
+		return nil, errors.Wrap(err, "could not store pending upload in backend")
+	}
+
+	uploadRequest := &UploadRequest{
+		Token: token,
+		URL:   url,
+	}
+
+	return uploadRequest, nil
 }
 
 // updateFunctionConfiguration updates the function's configuration
