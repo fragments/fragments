@@ -1,0 +1,19 @@
+version: '3'
+services:
+  etcd:
+    image: quay.io/coreos/etcd
+    container_name: etcd
+    ports:
+      - 2379:2379
+      - 2380:2380
+    environment:
+      ETCD_DATA_DIR: /opt/etcd/data
+      ETCD_NAME: etcd-node-01
+      ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+      ETCD_ADVERTISE_CLIENT_URLS: http://0.0.0.0:2379
+      ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+      ETCD_INITIAL_CLUSTER_TOKEN: etcd-cluster
+      ETCD_INITIAL_ADVERTISE_PEER_URLS: http://10.0.0.1:2380
+      ETCD-INITIAL-CLUSTER: etcd-node-01=http://10.0.0.1:2380
+    volumes:
+      - $ETCD_DATA:/opt/etcd/data
