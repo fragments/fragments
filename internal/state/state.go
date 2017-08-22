@@ -15,3 +15,8 @@ const (
 func resourcePath(resType ResourceType, name string) string {
 	return fmt.Sprintf("/resources/%s/%s", resType, name)
 }
+
+// uploadPath builds a path that's used for storing pending uploads.
+func uploadPath(token string) string {
+	return fmt.Sprintf("/uploads/%s", token)
+}
