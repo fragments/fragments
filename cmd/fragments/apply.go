@@ -169,24 +169,22 @@ func applyFunction(ctx context.Context, srv *server.Server, meta *client.Meta, f
 	}
 
 	// Construct request
-	input := &server.PutFunctionInput{
-		Function: state.Function{
-			Checksum: hex.EncodeToString(shasum),
-			Meta: state.Meta{
-				Name:   meta.Name,
-				Labels: meta.Labels,
-			},
-			Runtime: spec.Runtime,
+	function := &state.Function{
+		Checksum: hex.EncodeToString(shasum),
+		Meta: state.Meta{
+			Name:   meta.Name,
+			Labels: meta.Labels,
 		},
+		Runtime: spec.Runtime,
 	}
 	if spec.AWS != nil {
-		input.Function.AWS = &state.FunctionAWS{
+		function.AWS = &state.FunctionAWS{
 			Timeout: spec.AWS.Timeout,
 			Memory:  spec.AWS.Memory,
 		}
 	}
 
-	_, err = srv.PutFunction(ctx, input)
+	_, err = srv.PutFunction(ctx, function)
 	if err != nil {
 		return errors.Wrap(err, "could not put function")
 	}
