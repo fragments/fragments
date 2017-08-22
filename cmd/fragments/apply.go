@@ -10,7 +10,9 @@ import (
 	"sort"
 	"strings"
 	"syscall"
+	"time"
 
+	"github.com/fragments/fragments/internal/backend"
 	"github.com/fragments/fragments/internal/client"
 	"github.com/fragments/fragments/internal/server"
 	"github.com/fragments/fragments/internal/state"
@@ -27,6 +29,7 @@ func newApplyCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	ignore := flags.StringSliceP("ignore", "i", []string{"node_modules", "vendor"}, "File/directory patterns to ignore")
+	etcdEndpoints := flags.StringSliceP("etcd", "e", []string{"0.0.0.0:2379"}, "ETCD endpoints to connect to for storing state")
 
 	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
@@ -100,7 +103,15 @@ func newApplyCommand() *cobra.Command {
 			}
 		}
 
-		s := &server.Server{}
+		etcd, err := backend.NewETCDClient(*etcdEndpoints, 3*time.Second)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
+		}
+
+		s := &server.Server{
+			StateStore: etcd,
+		}
 		g, ctx := errgroup.WithContext(ctx)
 		for _, r := range resources {
 			r := r
