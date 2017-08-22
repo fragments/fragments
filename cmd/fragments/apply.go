@@ -14,9 +14,11 @@ import (
 
 	"github.com/fragments/fragments/internal/backend"
 	"github.com/fragments/fragments/internal/client"
+	"github.com/fragments/fragments/internal/filestore"
 	"github.com/fragments/fragments/internal/server"
 	"github.com/fragments/fragments/internal/state"
 	"github.com/golang/sync/errgroup"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -109,7 +111,21 @@ func newApplyCommand() *cobra.Command {
 			os.Exit(1)
 		}
 
-		s := server.New(etcd)
+		home, err := homedir.Dir()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
+		}
+
+		uploads := filepath.Join(home, ".fragments", "uploads")
+		source := filepath.Join(home, ".fragments", "source")
+		sourceStore, err := filestore.NewLocal(uploads, source)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
+		}
+
+		s := server.New(etcd, sourceStore)
 		g, ctx := errgroup.WithContext(ctx)
 		for _, r := range resources {
 			r := r
