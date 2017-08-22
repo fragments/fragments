@@ -109,9 +109,7 @@ func newApplyCommand() *cobra.Command {
 			os.Exit(1)
 		}
 
-		s := &server.Server{
-			StateStore: etcd,
-		}
+		s := server.New(etcd)
 		g, ctx := errgroup.WithContext(ctx)
 		for _, r := range resources {
 			r := r
