@@ -213,5 +213,14 @@ func applyFunction(ctx context.Context, srv *server.Server, meta *client.Meta, f
 }
 
 func upload(source []string, uploadReq *server.UploadRequest) error {
-	return errors.New("not implemented")
+	targz, err := client.Compress(source)
+	if err != nil {
+		return errors.Wrap(err, "could not archive source")
+	}
+
+	if err := client.Upload(targz, uploadReq.URL); err != nil {
+		return errors.Wrap(err, "upload failed")
+	}
+
+	return errors.New("confirm not implemented")
 }
