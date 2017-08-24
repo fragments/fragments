@@ -144,6 +144,10 @@ func newApplyCommand() *cobra.Command {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		}
+
+		if err := etcd.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "could not close etcd: %s\n", err)
+		}
 	}
 
 	return cmd
@@ -207,6 +211,10 @@ func applyFunction(ctx context.Context, srv *server.Server, meta *client.Meta, f
 		if err := upload(source, uploadReq); err != nil {
 			return errors.Wrap(err, "upload failed")
 		}
+
+		if err := srv.ConfirmUpload(ctx, uploadReq.Token); err != nil {
+			return errors.Wrap(err, "could not confirm upload")
+		}
 	}
 
 	return nil
@@ -222,5 +230,5 @@ func upload(source []string, uploadReq *server.UploadRequest) error {
 		return errors.Wrap(err, "upload failed")
 	}
 
-	return errors.New("confirm not implemented")
+	return nil
 }

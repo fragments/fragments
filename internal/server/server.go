@@ -61,6 +61,36 @@ func (s *Server) PutFunction(ctx context.Context, input *state.Function) (*Uploa
 	return nil, nil
 }
 
+// ConfirmUpload is called by the client when the source has been uploaded
+func (s *Server) ConfirmUpload(ctx context.Context, token string) error {
+	upload, err := state.GetPendingUpload(ctx, s.StateStore, token)
+	if err != nil {
+		return errors.Wrap(err, "could not get pending upload")
+	}
+
+	if upload == nil {
+		return errors.New("not found")
+	}
+
+	if err := s.SourceStore.Persist(ctx, token); err != nil {
+		return errors.Wrap(err, "could not persist source")
+	}
+
+	function := upload.Function
+	function.SourceFilename = token
+
+	if err := s.updateFunctionConfiguration(ctx, function); err != nil {
+		return errors.Wrap(err, "error storing function update")
+	}
+
+	if err := state.DeletePendingUpload(ctx, s.StateStore, token); err != nil {
+		return errors.Wrap(err, "could not delete pending upload")
+	}
+
+	// TODO(akupila): if set; archive upload.PreviousFilename from source store
+	return nil
+}
+
 // requestUpload creates a url the client can upload source code to. The upload
 // request is stored as a PendingUpload in the store so it can be retrieved
 // when the client confirms the upload.
@@ -96,5 +126,8 @@ func (s *Server) requestUpload(ctx context.Context, input *state.Function, exist
 // (performance specs, environment variables etc) without updating the source
 // code.
 func (s *Server) updateFunctionConfiguration(ctx context.Context, input *state.Function) error {
-	return errors.New("not implemented")
+	if err := state.PutFunction(ctx, s.StateStore, input); err != nil {
+		return errors.Wrap(err, "could not update function configuration")
+	}
+	return nil
 }
