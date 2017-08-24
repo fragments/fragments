@@ -31,3 +31,27 @@ func PutPendingUpload(ctx context.Context, kv backend.KV, token string, upload *
 
 	return nil
 }
+
+// PutFunction creates or updates a function.
+func PutFunction(ctx context.Context, kv backend.KV, function *Function) error {
+	if function == nil {
+		return errors.New("function is nil")
+	}
+
+	name := function.Meta.Name
+	if name == "" {
+		return errors.New("name not set")
+	}
+
+	raw, err := json.Marshal(function)
+	if err != nil {
+		return errors.Wrap(err, "could not marshal pending upload")
+	}
+
+	key := resourcePath(ResourceTypeFunction, name)
+	if err := kv.Put(ctx, key, string(raw)); err != nil {
+		return errors.Wrap(err, "could not store function")
+	}
+
+	return nil
+}

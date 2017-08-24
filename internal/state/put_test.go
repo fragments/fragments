@@ -76,3 +76,71 @@ func TestPutPendingUpload(t *testing.T) {
 		})
 	}
 }
+
+func TestPutFunction(t *testing.T) {
+	ctx := context.Background()
+	ctxCanceled, cancel := context.WithCancel(ctx)
+	cancel()
+
+	noNameFunction := &Function{}
+	function := &Function{
+		Meta: Meta{
+			Name: "name",
+		},
+		Runtime: "go",
+	}
+	data, _ := json.Marshal(function)
+
+	matchCtx := mock.MatchedBy(func(ctx context.Context) bool { return ctx.Err() == nil })
+	matchCtxCancel := mock.MatchedBy(func(ctx context.Context) bool { return ctx.Err() != nil })
+
+	mockKV := &mocks.KV{}
+	mockKV.
+		On("Put", matchCtxCancel, mock.Anything, mock.Anything).
+		Return(errors.New("context canceled"))
+	mockKV.
+		On("Put", matchCtx, "/resources/function/name", string(data)).
+		Return(nil)
+
+	tests := []struct {
+		TestName string
+		Ctx      context.Context
+		Payload  *Function
+		Error    bool
+	}{
+		{
+			TestName: "No payload",
+			Ctx:      ctx,
+			Payload:  nil,
+			Error:    true,
+		},
+		{
+			TestName: "No name",
+			Ctx:      ctx,
+			Payload:  noNameFunction,
+			Error:    true,
+		},
+		{
+			TestName: "Context canceled",
+			Ctx:      ctxCanceled,
+			Payload:  function,
+			Error:    true,
+		},
+		{
+			TestName: "Ok",
+			Ctx:      ctx,
+			Payload:  function,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.TestName, func(t *testing.T) {
+			err := PutFunction(test.Ctx, mockKV, test.Payload)
+			if test.Error {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
