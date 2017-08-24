@@ -67,7 +67,7 @@ func (v *Vault) Put(ctx context.Context, key, value string) error {
 	data := wrapVaultData(value)
 	_, err := v.client.Logical().Write(fmt.Sprintf("secret/%s", key), data)
 	if err != nil {
-		return errors.Wrap(err, "could not write vault data")
+		return errors.Wrap(err, "could not write data")
 	}
 	return nil
 }
@@ -80,14 +80,45 @@ func (v *Vault) Get(ctx context.Context, key string) (string, error) {
 	}
 	s, err := v.client.Logical().Read(fmt.Sprintf("secret/%s", key))
 	if err != nil {
-		return "", errors.Wrap(err, "could not read value from vault")
+		return "", errors.Wrap(err, "could not read value")
 	}
 	if s == nil {
-		return "", &ErrNotFound{key}
+		return "", &ErrNotFound{
+			Key: key,
+		}
 	}
 	value, err := unwrapVaultData(s.Data)
 	if err != nil {
 		return "", err
 	}
 	return value, nil
+}
+
+// Delete deletes a generic secret from Vault.
+// Returns ErrNotFound if the secret does not exist.
+//
+// Since Vault doesn't return if the secret was actually deleted a check is
+// done first to read the key.
+func (v *Vault) Delete(ctx context.Context, key string) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	// Check if the value exists, Vault does not say if the value was actually
+	// deleted.
+	path := fmt.Sprintf("secret/%s", key)
+	s, err := v.client.Logical().Read(path)
+	if err != nil {
+		return errors.Wrap(err, "could not check if value exists")
+	}
+	if s == nil {
+		return &ErrNotFound{
+			Key: key,
+		}
+	}
+
+	_, err = v.client.Logical().Delete(path)
+	if err != nil {
+		return errors.Wrap(err, "could not delete key")
+	}
+	return nil
 }

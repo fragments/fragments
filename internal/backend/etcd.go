@@ -52,6 +52,19 @@ func (e *ETCD) Get(ctx context.Context, key string) (string, error) {
 	return string(res.Kvs[0].Value), nil
 }
 
+// Delete deletes a key from ETCD. Returns ErrNotFound in case the key does not
+// exist.
+func (e *ETCD) Delete(ctx context.Context, key string) error {
+	res, err := e.client.Delete(ctx, key)
+	if err != nil {
+		return errors.Wrapf(err, "could not delete key: %s", key)
+	}
+	if res.Deleted < 1 {
+		return &ErrNotFound{key}
+	}
+	return nil
+}
+
 // Close closes the connection to ETCD.
 func (e *ETCD) Close() error {
 	return e.client.Close()

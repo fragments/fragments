@@ -8,14 +8,17 @@ import (
 )
 
 // KV  interface is implemented by backends that persistently store key-value
-// data
+// data.
 type KV interface {
 	// Put inserts a value under a key. In case the value already exists it is
 	// overwritten. The key is case-insensitive.
 	Put(ctx context.Context, key, value string) error
 	// Get gets a value. In case the key does not exist, returns ErrNotFound if
-	// the key was not found
+	// the key was not found.
 	Get(ctx context.Context, key string) (string, error)
+	// Delete deletes a key. In case the key does not exist, returns ErrNotFound
+	// if the key was not found.
+	Delete(ctx context.Context, key string) error
 }
 
 // ErrNotFound represents an error of a key that was not found

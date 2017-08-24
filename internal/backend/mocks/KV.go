@@ -42,3 +42,17 @@ func (_m *KV) Get(ctx context.Context, key string) (string, error) {
 
 	return r0, r1
 }
+
+// Delete provides a mock function with given fields: ctx, key
+func (_m *KV) Delete(ctx context.Context, key string) error {
+	ret := _m.Called(ctx, key)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = rf(ctx, key)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}

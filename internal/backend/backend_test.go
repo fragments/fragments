@@ -60,7 +60,7 @@ func getTestTargets(t *testing.T) []testTarget {
 					t.Fatal(errors.Wrapf(err, "could not get test ETCD value: %s", key))
 				}
 				if res.Count < 1 {
-					t.Fatalf("test ETCD get did not return any values: %s", key)
+					return "notfound"
 				}
 				return string(res.Kvs[0].Value)
 			},
@@ -110,7 +110,7 @@ func getTestTargets(t *testing.T) []testTarget {
 					t.Fatal(errors.Wrapf(err, "%s: could not read test Vault data", key))
 				}
 				if s == nil {
-					t.Fatalf("test Vault get did not return any values: %s", key)
+					return "notfound"
 				}
 				value, err := unwrapVaultData(s.Data)
 				if err != nil {
@@ -250,6 +250,74 @@ func TestGet(t *testing.T) {
 					require.NoError(t, err)
 
 					assert.EqualValues(t, test.Expected, actual)
+				})
+			}
+			if closer, ok := client.(io.Closer); ok {
+				_ = closer.Close()
+			}
+		})
+	}
+}
+
+func TestDelete(t *testing.T) {
+	targets := getTestTargets(t)
+
+	ctx := context.Background()
+	ctxCanceled, cancel := context.WithCancel(ctx)
+	cancel()
+
+	tests := []struct {
+		TestName string
+		Context  context.Context
+		Key      string
+		Error    bool
+		NotFound bool
+	}{
+		{
+			TestName: "Context canceled",
+			Context:  ctxCanceled,
+			Key:      "foo",
+			Error:    true,
+		},
+		{
+			TestName: "Not found",
+			Context:  ctx,
+			Key:      "baz",
+			NotFound: true,
+		},
+		{
+			TestName: "Found",
+			Context:  ctx,
+			Key:      "foo",
+		},
+	}
+
+	for _, target := range targets {
+		t.Run(target.TargetName, func(t *testing.T) {
+			testClient := target.TestClient(t)
+			client := target.New(testClient)
+			target.AddTestValue(t, testClient, "foo", "bar")
+
+			for _, test := range tests {
+				t.Run(test.TestName, func(t *testing.T) {
+					err := client.Delete(test.Context, test.Key)
+					if test.Error || test.NotFound {
+						require.Error(t, err)
+
+						switch errors.Cause(err).(type) {
+						case *ErrNotFound:
+							assert.True(t, test.NotFound)
+							assert.Contains(t, err.Error(), test.Key)
+						default:
+							assert.False(t, test.NotFound)
+						}
+
+						return
+					}
+					require.NoError(t, err)
+
+					actual := target.GetTestValue(t, testClient, test.Key)
+					assert.Equal(t, "notfound", actual)
 				})
 			}
 			if closer, ok := client.(io.Closer); ok {
