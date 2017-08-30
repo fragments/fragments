@@ -13,6 +13,7 @@ import (
 // store.
 type Server struct {
 	StateStore    backend.KV
+	SecretStore   backend.KV
 	SourceStore   filestore.SourceTarget
 	GenerateToken func() string
 }
@@ -98,6 +99,63 @@ func (s *Server) ConfirmUpload(ctx context.Context, token string) error {
 	}
 
 	// TODO(akupila): if set; archive upload.PreviousFilename from source store
+	return nil
+}
+
+// EnvironmentInput is the input to specify when creating an environment. The
+// credentials are stored in the secret store so the underlying
+// state.Environment does not contain these fields.
+type EnvironmentInput struct {
+	// Name is the name that identifies the environment.
+	Name string
+	// Labels are used to map a deployment to the environment.
+	Labels map[string]string
+	// Infrastructure is the type of infrastructure the environment is for
+	Infrastructure state.InfrastructureType
+	// Username is the username used to authenticate to the infrastructure
+	// provider.
+	Username string
+	// Password is the password used to authenticate to the infrastructure
+	// provider.
+	Password string
+}
+
+// CreateEnvironment creates a new target deployment environment. Returns an
+// error if an environment with the same name already exists.
+func (s *Server) CreateEnvironment(ctx context.Context, input *EnvironmentInput) error {
+	if input == nil {
+		return errors.New("no environment supplied")
+	}
+	name := input.Name
+	if name == "" {
+		return errors.New("environment has no meta or name")
+	}
+
+	existing, err := state.GetEnvironment(ctx, s.StateStore, name)
+	if err != nil {
+		return errors.Wrap(err, "could not check existing environment")
+	}
+	if existing != nil {
+		return errors.Errorf("an environment with the name %q already exists", name)
+	}
+
+	// Store environment credentials
+	if err := putUserCredentials(ctx, s.SecretStore, name, input.Username, input.Password); err != nil {
+		return errors.Wrap(err, "error storing credentials")
+	}
+
+	env := &state.Environment{
+		Meta: state.Meta{
+			Name:   name,
+			Labels: input.Labels,
+		},
+		Infrastructure: input.Infrastructure,
+	}
+
+	if err := state.PutEnvironment(ctx, s.StateStore, env); err != nil {
+		return errors.Wrap(err, "could not store environment")
+	}
+
 	return nil
 }
 

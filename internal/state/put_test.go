@@ -144,3 +144,71 @@ func TestPutFunction(t *testing.T) {
 		})
 	}
 }
+
+func TestPutEnvironment(t *testing.T) {
+	ctx := context.Background()
+	ctxCanceled, cancel := context.WithCancel(ctx)
+	cancel()
+
+	noNameEnvironment := &Environment{}
+	environment := &Environment{
+		Meta: Meta{
+			Name: "name",
+		},
+		Infrastructure: InfrastructureTypeAWS,
+	}
+	data, _ := json.Marshal(environment)
+
+	matchCtx := mock.MatchedBy(func(ctx context.Context) bool { return ctx.Err() == nil })
+	matchCtxCancel := mock.MatchedBy(func(ctx context.Context) bool { return ctx.Err() != nil })
+
+	mockKV := &mocks.KV{}
+	mockKV.
+		On("Put", matchCtxCancel, mock.Anything, mock.Anything).
+		Return(errors.New("context canceled"))
+	mockKV.
+		On("Put", matchCtx, "/resources/environment/name", string(data)).
+		Return(nil)
+
+	tests := []struct {
+		TestName string
+		Ctx      context.Context
+		Payload  *Environment
+		Error    bool
+	}{
+		{
+			TestName: "No payload",
+			Ctx:      ctx,
+			Payload:  nil,
+			Error:    true,
+		},
+		{
+			TestName: "No name",
+			Ctx:      ctx,
+			Payload:  noNameEnvironment,
+			Error:    true,
+		},
+		{
+			TestName: "Context canceled",
+			Ctx:      ctxCanceled,
+			Payload:  environment,
+			Error:    true,
+		},
+		{
+			TestName: "Ok",
+			Ctx:      ctx,
+			Payload:  environment,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.TestName, func(t *testing.T) {
+			err := PutEnvironment(test.Ctx, mockKV, test.Payload)
+			if test.Error {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}

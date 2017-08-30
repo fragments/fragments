@@ -55,3 +55,27 @@ func PutFunction(ctx context.Context, kv backend.KV, function *Function) error {
 
 	return nil
 }
+
+// PutEnvironment creates or updates an environment.
+func PutEnvironment(ctx context.Context, kv backend.KV, env *Environment) error {
+	if env == nil {
+		return errors.New("environment is nil")
+	}
+
+	name := env.Meta.Name
+	if name == "" {
+		return errors.New("name not set")
+	}
+
+	raw, err := json.Marshal(env)
+	if err != nil {
+		return errors.Wrap(err, "could not marshal environment")
+	}
+
+	key := resourcePath(ResourceTypeEnvironment, name)
+	if err := kv.Put(ctx, key, string(raw)); err != nil {
+		return errors.Wrap(err, "could not store environment")
+	}
+
+	return nil
+}

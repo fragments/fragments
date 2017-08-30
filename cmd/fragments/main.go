@@ -18,6 +18,7 @@ func main() {
 	flags.StringSliceP("etcd", "e", []string{"0.0.0.0:2379"}, "ETCD endpoints to connect to for storing state")
 
 	cmd.AddCommand(newApplyCommand())
+	cmd.AddCommand(newEnvironmentCommand())
 
 	_ = cmd.Execute()
 }

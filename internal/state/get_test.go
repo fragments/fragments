@@ -150,3 +150,72 @@ func TestGetPendingUpload(t *testing.T) {
 		})
 	}
 }
+
+func TestGetEnvironment(t *testing.T) {
+	ctx := context.Background()
+	ctxCanceled, cancel := context.WithCancel(ctx)
+	cancel()
+
+	environment := &Environment{}
+	environmentData, _ := json.Marshal(environment)
+
+	matchCtx := mock.MatchedBy(func(ctx context.Context) bool { return ctx.Err() == nil })
+	matchCtxCancel := mock.MatchedBy(func(ctx context.Context) bool { return ctx.Err() != nil })
+
+	mockKV := &mocks.KV{}
+	mockKV.
+		On("Get", matchCtxCancel, mock.AnythingOfType("string")).
+		Return("", errors.New("context canceled"))
+	mockKV.
+		On("Get", matchCtx, resourcePath(ResourceTypeEnvironment, "corrupted")).
+		Return("invalid json", nil)
+	mockKV.
+		On("Get", matchCtx, resourcePath(ResourceTypeEnvironment, "notfound")).
+		Return("", &backend.ErrNotFound{Key: "notfound"})
+	mockKV.
+		On("Get", matchCtx, resourcePath(ResourceTypeEnvironment, "found")).
+		Return(string(environmentData), nil)
+
+	tests := []struct {
+		TestName string
+		Ctx      context.Context
+		Name     string
+		Error    bool
+		Expected *Environment
+	}{
+		{
+			TestName: "Context canceled",
+			Ctx:      ctxCanceled,
+			Error:    true,
+		},
+		{
+			TestName: "Unmarshal err",
+			Ctx:      ctx,
+			Name:     "corrupted",
+			Error:    true,
+		},
+		{
+			TestName: "Not found",
+			Ctx:      ctx,
+			Name:     "notfound",
+		},
+		{
+			TestName: "Ok",
+			Ctx:      ctx,
+			Name:     "found",
+			Expected: environment,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.TestName, func(t *testing.T) {
+			actual, err := GetEnvironment(test.Ctx, mockKV, test.Name)
+			if test.Error {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.EqualValues(t, test.Expected, actual)
+		})
+	}
+}

@@ -52,3 +52,25 @@ func GetPendingUpload(ctx context.Context, kv backend.KV, token string) (*Pendin
 
 	return &pendingUpload, nil
 }
+
+// GetEnvironment returns an environment. Returns nil if the environment does
+// not exist.
+func GetEnvironment(ctx context.Context, kv backend.KV, name string) (*Environment, error) {
+	key := resourcePath(ResourceTypeEnvironment, name)
+	raw, err := kv.Get(ctx, key)
+	if err != nil {
+		switch errors.Cause(err).(type) {
+		case *backend.ErrNotFound:
+			return nil, nil
+		default:
+			return nil, errors.Wrap(err, "could not get environment from backend")
+		}
+	}
+
+	var env Environment
+	if err := json.Unmarshal([]byte(raw), &env); err != nil {
+		return nil, errors.Wrap(err, "could not unmarshal environment")
+	}
+
+	return &env, nil
+}

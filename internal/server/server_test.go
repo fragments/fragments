@@ -201,3 +201,94 @@ func TestConfirmUpload(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateEnvironment(t *testing.T) {
+	foo := &state.Environment{
+		Meta:           state.Meta{Name: "foo"},
+		Infrastructure: state.InfrastructureTypeAWS,
+	}
+
+	tests := []struct {
+		TestName string
+		Existing *state.Environment
+		Input    *EnvironmentInput
+		Error    bool
+	}{
+		{
+			TestName: "No input",
+			Input:    nil,
+			Error:    true,
+		},
+		{
+			TestName: "No name",
+			Input:    &EnvironmentInput{},
+			Error:    true,
+		},
+		{
+			TestName: "Existing",
+			Existing: foo,
+			Input: &EnvironmentInput{
+				Name: "foo",
+			},
+			Error: true,
+		},
+		{
+			TestName: "New",
+			Existing: foo,
+			Input: &EnvironmentInput{
+				Name: "bar",
+				Labels: map[string]string{
+					"foo": "bar",
+				},
+				Infrastructure: state.InfrastructureTypeAWS,
+				Username:       "user",
+				Password:       "pass",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.TestName, func(t *testing.T) {
+			ctx := context.Background()
+			mockKV := backend.NewMemoryKV()
+			if test.Existing != nil {
+				_ = state.PutEnvironment(ctx, mockKV, test.Existing)
+			}
+
+			mockSecrets := backend.NewMemoryKV()
+
+			s := &Server{
+				StateStore:    mockKV,
+				SecretStore:   mockSecrets,
+				SourceStore:   nil,
+				GenerateToken: nil,
+			}
+
+			err := s.CreateEnvironment(ctx, test.Input)
+			if test.Error {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+
+			expected := &state.Environment{
+				Meta: state.Meta{
+					Name:   test.Input.Name,
+					Labels: test.Input.Labels,
+				},
+				Infrastructure: test.Input.Infrastructure,
+			}
+
+			actual, _ := state.GetEnvironment(ctx, mockKV, test.Input.Name)
+			assert.EqualValues(t, expected, actual)
+
+			user, err := mockSecrets.Get(ctx, fmt.Sprintf("user/%s/%s", test.Input.Name, keySecretUser))
+			require.NoError(t, err)
+			assert.Equal(t, test.Input.Username, user)
+			pass, err := mockSecrets.Get(ctx, fmt.Sprintf("user/%s/%s", test.Input.Name, keySecretPass))
+			require.NoError(t, err)
+			assert.Equal(t, test.Input.Password, pass)
+		})
+	}
+}
