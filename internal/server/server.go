@@ -39,6 +39,12 @@ type UploadRequest struct {
 // PutFunction creates or updates a function. In case the function already
 // exists it is updated. If not, source upload is requested.
 func (s *Server) PutFunction(ctx context.Context, input *state.Function) (*UploadRequest, error) {
+	if input == nil {
+		return nil, errors.New("no function supplied")
+	}
+	if input.Meta.Name == "" {
+		return nil, errors.New("function has no meta or name")
+	}
 	// Get existing function
 	existing, err := state.GetFunction(ctx, s.StateStore, input.Meta.Name)
 	if err != nil {
