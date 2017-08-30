@@ -45,7 +45,7 @@ func PutFunction(ctx context.Context, kv backend.KV, function *Function) error {
 
 	raw, err := json.Marshal(function)
 	if err != nil {
-		return errors.Wrap(err, "could not marshal pending upload")
+		return errors.Wrap(err, "could not marshal function")
 	}
 
 	key := resourcePath(ResourceTypeFunction, name)
