@@ -4,15 +4,14 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"sort"
 	"strings"
 	"syscall"
-	"time"
 
-	"github.com/fragments/fragments/internal/backend"
 	"github.com/fragments/fragments/internal/client"
 	"github.com/fragments/fragments/internal/filestore"
 	"github.com/fragments/fragments/internal/server"
@@ -31,7 +30,6 @@ func newApplyCommand() *cobra.Command {
 
 	flags := cmd.Flags()
 	ignore := flags.StringSliceP("ignore", "i", []string{"node_modules", "vendor"}, "File/directory patterns to ignore")
-	etcdEndpoints := flags.StringSliceP("etcd", "e", []string{"0.0.0.0:2379"}, "ETCD endpoints to connect to for storing state")
 
 	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
 		if len(args) == 0 {
@@ -105,12 +103,6 @@ func newApplyCommand() *cobra.Command {
 			}
 		}
 
-		etcd, err := backend.NewETCDClient(*etcdEndpoints, 3*time.Second)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
-
 		home, err := homedir.Dir()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
@@ -125,7 +117,13 @@ func newApplyCommand() *cobra.Command {
 			os.Exit(1)
 		}
 
-		s := server.New(etcd, sourceStore)
+		kv, err := getKV(flags)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
+		}
+
+		s := server.New(kv, sourceStore)
 		g, ctx := errgroup.WithContext(ctx)
 		for _, r := range resources {
 			r := r
@@ -145,8 +143,10 @@ func newApplyCommand() *cobra.Command {
 			os.Exit(1)
 		}
 
-		if err := etcd.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "could not close etcd: %s\n", err)
+		if kvCloser, ok := kv.(io.Closer); ok {
+			if err := kvCloser.Close(); err != nil {
+				fmt.Fprintf(os.Stderr, "could not close etcd: %s\n", err)
+			}
 		}
 	}
 
