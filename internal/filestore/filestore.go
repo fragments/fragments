@@ -1,3 +1,5 @@
+//go:generate mockery -name SourceTarget
+
 package filestore
 
 import "context"
