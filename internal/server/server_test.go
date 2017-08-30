@@ -116,3 +116,88 @@ func TestPutFunction(t *testing.T) {
 		})
 	}
 }
+
+func TestConfirmUpload(t *testing.T) {
+	foo := &state.Function{
+		Meta:     state.Meta{Name: "foo"},
+		AWS:      &state.FunctionAWS{Memory: 256},
+		Checksum: "foo",
+	}
+	uploadNew := &state.PendingUpload{
+		Filename: "foo.tar.gz",
+		Function: foo,
+	}
+	uploadUpdate := &state.PendingUpload{
+		Filename:         "bar.tar.gz",
+		PreviousFilename: "foo.tar.gz",
+		Function:         foo,
+	}
+
+	tests := []struct {
+		TestName string
+		Token    string
+		Pending  *state.PendingUpload
+		Error    bool
+	}{
+		{
+			TestName: "No token",
+			Token:    "",
+			Error:    true,
+		},
+		{
+			TestName: "No pending upload",
+			Token:    "token",
+			Error:    true,
+		},
+		{
+			TestName: "New upload",
+			Token:    "token",
+			Pending:  uploadNew,
+		},
+		{
+			TestName: "Update code",
+			Token:    "token",
+			Pending:  uploadUpdate,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.TestName, func(t *testing.T) {
+			ctx := context.Background()
+			mockKV := backend.NewMemoryKV()
+			if test.Pending != nil {
+				_ = state.PutPendingUpload(ctx, mockKV, test.Token, test.Pending)
+			}
+
+			mockSourceStore := &fsmocks.SourceTarget{}
+			mockSourceStore.
+				On("Persist", ctx, test.Token).
+				Return(nil)
+
+			s := &Server{
+				StateStore:    mockKV,
+				SourceStore:   mockSourceStore,
+				GenerateToken: func() string { return test.Token },
+			}
+
+			err := s.ConfirmUpload(ctx, test.Token)
+			if test.Error {
+				require.Error(t, err)
+				return
+			}
+
+			mockSourceStore.AssertExpectations(t)
+
+			require.NoError(t, err)
+
+			u, _ := state.GetPendingUpload(ctx, mockKV, test.Token)
+			assert.Nil(t, u)
+
+			expected := test.Pending.Function
+			expected.SourceFilename = test.Pending.Filename
+
+			actual, _ := state.GetFunction(ctx, mockKV, expected.Meta.Name)
+			assert.EqualValues(t, expected, actual)
+		})
+	}
+}

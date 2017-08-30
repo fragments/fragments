@@ -69,6 +69,10 @@ func (s *Server) PutFunction(ctx context.Context, input *state.Function) (*Uploa
 
 // ConfirmUpload is called by the client when the source has been uploaded
 func (s *Server) ConfirmUpload(ctx context.Context, token string) error {
+	if token == "" {
+		return errors.New("token not set")
+	}
+
 	upload, err := state.GetPendingUpload(ctx, s.StateStore, token)
 	if err != nil {
 		return errors.Wrap(err, "could not get pending upload")
@@ -83,7 +87,7 @@ func (s *Server) ConfirmUpload(ctx context.Context, token string) error {
 	}
 
 	function := upload.Function
-	function.SourceFilename = token
+	function.SourceFilename = upload.Filename
 
 	if err := s.updateFunctionConfiguration(ctx, function); err != nil {
 		return errors.Wrap(err, "error storing function update")
