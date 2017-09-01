@@ -73,7 +73,7 @@ func (v *Vault) Put(ctx context.Context, key, value string) error {
 }
 
 // Get gets a generic secret from Vault.
-// Returns ErrNotFound if the secret does not exist.
+// Returns NotFoundError if the secret does not exist.
 func (v *Vault) Get(ctx context.Context, key string) (string, error) {
 	if err := ctx.Err(); err != nil {
 		return "", err
@@ -83,9 +83,7 @@ func (v *Vault) Get(ctx context.Context, key string) (string, error) {
 		return "", errors.Wrap(err, "could not read value")
 	}
 	if s == nil {
-		return "", &ErrNotFound{
-			Key: key,
-		}
+		return "", &NotFoundError{key}
 	}
 	value, err := unwrapVaultData(s.Data)
 	if err != nil {
@@ -95,7 +93,7 @@ func (v *Vault) Get(ctx context.Context, key string) (string, error) {
 }
 
 // Delete deletes a generic secret from Vault.
-// Returns ErrNotFound if the secret does not exist.
+// Returns NotFoundError if the secret does not exist.
 //
 // Since Vault doesn't return if the secret was actually deleted a check is
 // done first to read the key.
@@ -111,9 +109,7 @@ func (v *Vault) Delete(ctx context.Context, key string) error {
 		return errors.Wrap(err, "could not check if value exists")
 	}
 	if s == nil {
-		return &ErrNotFound{
-			Key: key,
-		}
+		return &NotFoundError{key}
 	}
 
 	_, err = v.client.Logical().Delete(path)

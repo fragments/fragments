@@ -38,7 +38,7 @@ func (e *ETCD) Put(ctx context.Context, key, value string) error {
 	return nil
 }
 
-// Get retrieves values from ETCD. Returns ErrNotFound in case the key does not
+// Get retrieves values from ETCD. Returns NotFoundError in case the key does not
 // exist.
 func (e *ETCD) Get(ctx context.Context, key string) (string, error) {
 	res, err := e.client.Get(ctx, key, clientv3.WithLimit(1))
@@ -46,13 +46,13 @@ func (e *ETCD) Get(ctx context.Context, key string) (string, error) {
 		return "", errors.Wrapf(err, "could not get key: %s", key)
 	}
 	if res.Count < 1 {
-		return "", &ErrNotFound{key}
+		return "", &NotFoundError{key}
 	}
 
 	return string(res.Kvs[0].Value), nil
 }
 
-// Delete deletes a key from ETCD. Returns ErrNotFound in case the key does not
+// Delete deletes a key from ETCD. Returns NotFoundError in case the key does not
 // exist.
 func (e *ETCD) Delete(ctx context.Context, key string) error {
 	res, err := e.client.Delete(ctx, key)
@@ -60,7 +60,7 @@ func (e *ETCD) Delete(ctx context.Context, key string) error {
 		return errors.Wrapf(err, "could not delete key: %s", key)
 	}
 	if res.Deleted < 1 {
-		return &ErrNotFound{key}
+		return &NotFoundError{key}
 	}
 	return nil
 }

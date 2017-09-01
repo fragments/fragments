@@ -14,12 +14,10 @@ func GetFunction(ctx context.Context, kv backend.KV, name string) (*Function, er
 	key := resourcePath(ResourceTypeFunction, name)
 	raw, err := kv.Get(ctx, key)
 	if err != nil {
-		switch errors.Cause(err).(type) {
-		case *backend.ErrNotFound:
+		if backend.IsNotFound(err) {
 			return nil, nil
-		default:
-			return nil, errors.Wrap(err, "could not get function from backend")
 		}
+		return nil, errors.Wrap(err, "could not get function from backend")
 	}
 
 	var function Function
@@ -37,12 +35,10 @@ func GetPendingUpload(ctx context.Context, kv backend.KV, token string) (*Pendin
 	key := uploadPath(token)
 	raw, err := kv.Get(ctx, key)
 	if err != nil {
-		switch errors.Cause(err).(type) {
-		case *backend.ErrNotFound:
+		if backend.IsNotFound(err) {
 			return nil, nil
-		default:
-			return nil, errors.Wrap(err, "could not get pending upload from backend")
 		}
+		return nil, errors.Wrap(err, "could not get pending upload from backend")
 	}
 
 	var pendingUpload PendingUpload
@@ -59,12 +55,10 @@ func GetEnvironment(ctx context.Context, kv backend.KV, name string) (*Environme
 	key := resourcePath(ResourceTypeEnvironment, name)
 	raw, err := kv.Get(ctx, key)
 	if err != nil {
-		switch errors.Cause(err).(type) {
-		case *backend.ErrNotFound:
+		if backend.IsNotFound(err) {
 			return nil, nil
-		default:
-			return nil, errors.Wrap(err, "could not get environment from backend")
 		}
+		return nil, errors.Wrap(err, "could not get environment from backend")
 	}
 
 	var env Environment

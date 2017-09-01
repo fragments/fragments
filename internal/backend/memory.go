@@ -43,9 +43,7 @@ func (m *MemoryKV) Get(ctx context.Context, key string) (string, error) {
 	v, ok := m.Data[key]
 	m.mu.Unlock()
 	if !ok {
-		return "", &ErrNotFound{
-			Key: key,
-		}
+		return "", &NotFoundError{key}
 	}
 	return v, nil
 }
@@ -59,9 +57,7 @@ func (m *MemoryKV) Delete(ctx context.Context, key string) error {
 	_, ok := m.Data[key]
 	m.mu.Unlock()
 	if !ok {
-		return &ErrNotFound{
-			Key: key,
-		}
+		return &NotFoundError{key}
 	}
 	m.mu.Lock()
 	delete(m.Data, key)

@@ -25,7 +25,7 @@ func TestDeletePendingUpload(t *testing.T) {
 		Return(errors.New("context canceled"))
 	mockKV.
 		On("Delete", matchCtx, uploadPath("notfound")).
-		Return(&backend.ErrNotFound{Key: "notfound"})
+		Return(&backend.NotFoundError{"notfound"})
 	mockKV.
 		On("Delete", matchCtx, uploadPath("found")).
 		Return(nil)

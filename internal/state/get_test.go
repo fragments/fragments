@@ -33,7 +33,7 @@ func TestGetFunction(t *testing.T) {
 		Return("invalid json", nil)
 	mockKV.
 		On("Get", matchCtx, resourcePath(ResourceTypeFunction, "notfound")).
-		Return("", &backend.ErrNotFound{Key: "notfound"})
+		Return("", &backend.NotFoundError{"notfound"})
 	mockKV.
 		On("Get", matchCtx, resourcePath(ResourceTypeFunction, "found")).
 		Return(string(functionData), nil)
@@ -102,7 +102,7 @@ func TestGetPendingUpload(t *testing.T) {
 		Return("invalid json", nil)
 	mockKV.
 		On("Get", matchCtx, uploadPath("notfound")).
-		Return("", &backend.ErrNotFound{Key: "notfound"})
+		Return("", &backend.NotFoundError{"notfound"})
 	mockKV.
 		On("Get", matchCtx, uploadPath("token")).
 		Return(string(uploadData), nil)
@@ -171,7 +171,7 @@ func TestGetEnvironment(t *testing.T) {
 		Return("invalid json", nil)
 	mockKV.
 		On("Get", matchCtx, resourcePath(ResourceTypeEnvironment, "notfound")).
-		Return("", &backend.ErrNotFound{Key: "notfound"})
+		Return("", &backend.NotFoundError{"notfound"})
 	mockKV.
 		On("Get", matchCtx, resourcePath(ResourceTypeEnvironment, "found")).
 		Return(string(environmentData), nil)

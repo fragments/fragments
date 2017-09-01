@@ -260,14 +260,9 @@ func TestGet(t *testing.T) {
 					if test.Error || test.NotFound {
 						require.Error(t, err)
 
-						switch errors.Cause(err).(type) {
-						case *ErrNotFound:
-							assert.True(t, test.NotFound)
-							assert.Contains(t, err.Error(), test.Key)
-						default:
-							assert.False(t, test.NotFound)
+						if test.NotFound {
+							assert.True(t, test.NotFound, IsNotFound(err))
 						}
-
 						return
 					}
 					require.NoError(t, err)
@@ -326,15 +321,9 @@ func TestDelete(t *testing.T) {
 					err := client.Delete(test.Context, test.Key)
 					if test.Error || test.NotFound {
 						require.Error(t, err)
-
-						switch errors.Cause(err).(type) {
-						case *ErrNotFound:
-							assert.True(t, test.NotFound)
-							assert.Contains(t, err.Error(), test.Key)
-						default:
-							assert.False(t, test.NotFound)
+						if test.NotFound {
+							assert.True(t, test.NotFound, IsNotFound(err))
 						}
-
 						return
 					}
 					require.NoError(t, err)
