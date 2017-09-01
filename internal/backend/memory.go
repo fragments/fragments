@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"sync"
 
 	"github.com/pkg/errors"
 )
@@ -9,6 +10,7 @@ import (
 // MemoryKV keeps data in memory. It should only be used for unit tests.
 type MemoryKV struct {
 	Data map[string]string
+	mu   sync.Mutex
 }
 
 // NewMemoryKV creates a new in memory KV backend
@@ -26,7 +28,9 @@ func (m *MemoryKV) Put(ctx context.Context, key, value string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	m.mu.Lock()
 	m.Data[key] = value
+	m.mu.Unlock()
 	return nil
 }
 
@@ -35,7 +39,9 @@ func (m *MemoryKV) Get(ctx context.Context, key string) (string, error) {
 	if err := ctx.Err(); err != nil {
 		return "", err
 	}
+	m.mu.Lock()
 	v, ok := m.Data[key]
+	m.mu.Unlock()
 	if !ok {
 		return "", &ErrNotFound{
 			Key: key,
@@ -49,12 +55,16 @@ func (m *MemoryKV) Delete(ctx context.Context, key string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	m.mu.Lock()
 	_, ok := m.Data[key]
+	m.mu.Unlock()
 	if !ok {
 		return &ErrNotFound{
 			Key: key,
 		}
 	}
+	m.mu.Lock()
 	delete(m.Data, key)
+	m.mu.Unlock()
 	return nil
 }
