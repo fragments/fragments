@@ -17,3 +17,15 @@ services:
       ETCD-INITIAL-CLUSTER: etcd-node-01=http://10.0.0.1:2380
     volumes:
       - $ETCD_DATA:/opt/etcd/data
+  vault:
+    image: vault
+    container_name: vault
+    ports:
+      - 8200:8200
+    volumes:
+      - $VAULT_AUDIT:/audit:rw
+      - $VAULT_DATA:/vault/file:rw
+      - $VAULT_CONFIG:/vault/config:rw
+    cap_add:
+      - IPC_LOCK
+    entrypoint: vault server -config=/vault/config/
