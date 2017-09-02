@@ -16,6 +16,7 @@ func main() {
 
 	flags := cmd.PersistentFlags()
 	flags.StringSliceP("etcd", "e", []string{"0.0.0.0:2379"}, "ETCD endpoints to connect to for storing state")
+	flags.String("vault", "http://0.0.0.0:8200", "Vault address for storing secrets")
 
 	cmd.AddCommand(newApplyCommand())
 	cmd.AddCommand(newEnvironmentCommand())
@@ -33,4 +34,16 @@ func getKV(flags *pflag.FlagSet) (backend.KV, error) {
 		return nil, errors.Wrap(err, "could not get backend")
 	}
 	return etcd, nil
+}
+
+func getSecretKV(flags *pflag.FlagSet) (backend.KV, error) {
+	address, err := flags.GetString("vault")
+	if err != nil {
+		return nil, err
+	}
+	vault, err := backend.NewVaultClient(address)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get secret backend")
+	}
+	return vault, nil
 }

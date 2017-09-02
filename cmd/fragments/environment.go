@@ -74,6 +74,12 @@ func newEnvironmentCreateCommand() *cobra.Command {
 			os.Exit(1)
 		}
 
+		secrets, err := getSecretKV(flags)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", err)
+			os.Exit(1)
+		}
+
 		input := &server.EnvironmentInput{
 			Name:           *name,
 			Labels:         l,
@@ -82,7 +88,7 @@ func newEnvironmentCreateCommand() *cobra.Command {
 			Password:       *password,
 		}
 
-		s := server.New(kv, nil)
+		s := server.New(kv, secrets, nil)
 		ctx := context.TODO()
 		if err := s.CreateEnvironment(ctx, input); err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)

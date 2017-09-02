@@ -123,7 +123,7 @@ func newApplyCommand() *cobra.Command {
 			os.Exit(1)
 		}
 
-		s := server.New(kv, sourceStore)
+		s := server.New(kv, nil, sourceStore)
 		g, ctx := errgroup.WithContext(ctx)
 		for _, r := range resources {
 			r := r
