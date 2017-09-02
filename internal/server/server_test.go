@@ -7,34 +7,33 @@ import (
 
 	"github.com/fragments/fragments/internal/backend"
 	fsmocks "github.com/fragments/fragments/internal/filestore/mocks"
-	"github.com/fragments/fragments/internal/state"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPutFunction(t *testing.T) {
-	foo := &state.Function{
-		Meta:     state.Meta{Name: "foo"},
-		AWS:      &state.FunctionAWS{Memory: 256},
+	foo := &Function{
+		Meta:     Meta{Name: "foo"},
+		AWS:      &FunctionAWS{Memory: 256},
 		Checksum: "foo",
 	}
-	fooCode := &state.Function{
-		Meta:     state.Meta{Name: "foo"},
-		AWS:      &state.FunctionAWS{Memory: 256},
+	fooCode := &Function{
+		Meta:     Meta{Name: "foo"},
+		AWS:      &FunctionAWS{Memory: 256},
 		Checksum: "foobar",
 	}
-	fooConfig := &state.Function{
-		Meta:     state.Meta{Name: "foo"},
-		AWS:      &state.FunctionAWS{Memory: 512},
+	fooConfig := &Function{
+		Meta:     Meta{Name: "foo"},
+		AWS:      &FunctionAWS{Memory: 512},
 		Checksum: "foo",
 	}
 
 	tests := []struct {
 		TestName string
-		Input    *state.Function
-		Existing *state.Function
+		Input    *Function
+		Existing *Function
 		Token    string
-		Result   *state.Function
+		Result   *Function
 		Expected *UploadRequest
 		Error    bool
 	}{
@@ -45,7 +44,7 @@ func TestPutFunction(t *testing.T) {
 		},
 		{
 			TestName: "No name",
-			Input:    &state.Function{},
+			Input:    &Function{},
 			Error:    true,
 		},
 		{
@@ -86,7 +85,7 @@ func TestPutFunction(t *testing.T) {
 			ctx := context.Background()
 			mockKV := backend.NewMemoryKV()
 			if test.Existing != nil {
-				_ = state.PutFunction(ctx, mockKV, test.Existing)
+				_ = putResource(ctx, mockKV, ResourceTypeFunction, test.Existing)
 			}
 
 			mockSourceStore := &fsmocks.SourceTarget{}
@@ -110,7 +109,7 @@ func TestPutFunction(t *testing.T) {
 			assert.Equal(t, test.Expected, actual)
 
 			if test.Result != nil {
-				current, _ := state.GetFunction(ctx, mockKV, test.Input.Meta.Name)
+				current, _ := getFunction(ctx, mockKV, test.Input.Meta.Name)
 				assert.Equal(t, current, test.Input)
 			}
 		})
@@ -118,16 +117,16 @@ func TestPutFunction(t *testing.T) {
 }
 
 func TestConfirmUpload(t *testing.T) {
-	foo := &state.Function{
-		Meta:     state.Meta{Name: "foo"},
-		AWS:      &state.FunctionAWS{Memory: 256},
+	foo := &Function{
+		Meta:     Meta{Name: "foo"},
+		AWS:      &FunctionAWS{Memory: 256},
 		Checksum: "foo",
 	}
-	uploadNew := &state.PendingUpload{
+	uploadNew := &PendingUpload{
 		Filename: "foo.tar.gz",
 		Function: foo,
 	}
-	uploadUpdate := &state.PendingUpload{
+	uploadUpdate := &PendingUpload{
 		Filename:         "bar.tar.gz",
 		PreviousFilename: "foo.tar.gz",
 		Function:         foo,
@@ -136,7 +135,7 @@ func TestConfirmUpload(t *testing.T) {
 	tests := []struct {
 		TestName string
 		Token    string
-		Pending  *state.PendingUpload
+		Pending  *PendingUpload
 		Error    bool
 	}{
 		{
@@ -166,7 +165,7 @@ func TestConfirmUpload(t *testing.T) {
 			ctx := context.Background()
 			mockKV := backend.NewMemoryKV()
 			if test.Pending != nil {
-				_ = state.PutPendingUpload(ctx, mockKV, test.Token, test.Pending)
+				_ = putPendingUpload(ctx, mockKV, test.Token, test.Pending)
 			}
 
 			mockSourceStore := &fsmocks.SourceTarget{}
@@ -190,27 +189,27 @@ func TestConfirmUpload(t *testing.T) {
 
 			require.NoError(t, err)
 
-			u, _ := state.GetPendingUpload(ctx, mockKV, test.Token)
+			u, _ := getPendingUpload(ctx, mockKV, test.Token)
 			assert.Nil(t, u)
 
 			expected := test.Pending.Function
 			expected.SourceFilename = test.Pending.Filename
 
-			actual, _ := state.GetFunction(ctx, mockKV, expected.Meta.Name)
+			actual, _ := getFunction(ctx, mockKV, expected.Meta.Name)
 			assert.EqualValues(t, expected, actual)
 		})
 	}
 }
 
 func TestCreateEnvironment(t *testing.T) {
-	foo := &state.Environment{
-		Meta:           state.Meta{Name: "foo"},
-		Infrastructure: state.InfrastructureTypeAWS,
+	foo := &Environment{
+		Meta:           Meta{Name: "foo"},
+		Infrastructure: InfrastructureTypeAWS,
 	}
 
 	tests := []struct {
 		TestName string
-		Existing *state.Environment
+		Existing *Environment
 		Input    *EnvironmentInput
 		Error    bool
 	}{
@@ -240,7 +239,7 @@ func TestCreateEnvironment(t *testing.T) {
 				Labels: map[string]string{
 					"foo": "bar",
 				},
-				Infrastructure: state.InfrastructureTypeAWS,
+				Infrastructure: InfrastructureTypeAWS,
 				Username:       "user",
 				Password:       "pass",
 			},
@@ -252,7 +251,7 @@ func TestCreateEnvironment(t *testing.T) {
 			ctx := context.Background()
 			mockKV := backend.NewMemoryKV()
 			if test.Existing != nil {
-				_ = state.PutEnvironment(ctx, mockKV, test.Existing)
+				_ = putResource(ctx, mockKV, ResourceTypeEnvironment, test.Existing)
 			}
 
 			mockSecrets := backend.NewMemoryKV()
@@ -272,15 +271,15 @@ func TestCreateEnvironment(t *testing.T) {
 
 			require.NoError(t, err)
 
-			expected := &state.Environment{
-				Meta: state.Meta{
+			expected := &Environment{
+				Meta: Meta{
 					Name:   test.Input.Name,
 					Labels: test.Input.Labels,
 				},
 				Infrastructure: test.Input.Infrastructure,
 			}
 
-			actual, _ := state.GetEnvironment(ctx, mockKV, test.Input.Name)
+			actual, _ := getEnvironment(ctx, mockKV, test.Input.Name)
 			assert.EqualValues(t, expected, actual)
 
 			user, err := mockSecrets.Get(ctx, fmt.Sprintf("user/%s/%s", test.Input.Name, keySecretUser))

@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/fragments/fragments/internal/server"
-	"github.com/fragments/fragments/internal/state"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -99,11 +98,11 @@ func newEnvironmentCreateCommand() *cobra.Command {
 	return cmd
 }
 
-func parseInfrastructure(name string) (state.InfrastructureType, error) {
+func parseInfrastructure(name string) (server.InfrastructureType, error) {
 	n := strings.ToLower(name)
 	switch n {
-	case string(state.InfrastructureTypeAWS):
-		return state.InfrastructureTypeAWS, nil
+	case string(server.InfrastructureTypeAWS):
+		return server.InfrastructureTypeAWS, nil
 	default:
 		return "", errors.Errorf("unsupported infrastructure %q", name)
 	}

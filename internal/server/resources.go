@@ -1,4 +1,30 @@
-package state
+package server
+
+// ResourceType defines the type of a resource. It is used to group the same
+// resources in the backend.
+type ResourceType string
+
+const (
+	// ResourceTypeFunction is a function resource.
+	ResourceTypeFunction ResourceType = "function"
+	// ResourceTypeEnvironment is a target deployment environment
+	ResourceTypeEnvironment ResourceType = "environment"
+)
+
+// InfrastructureType is a target infrastructure to deploy to
+type InfrastructureType string
+
+const (
+	// InfrastructureTypeAWS is Amazon Web Services
+	InfrastructureTypeAWS InfrastructureType = "aws"
+)
+
+// Resource is a generic resource.
+type Resource interface {
+	// Name returns a unique name to identify the resource. The name is unique
+	// within the resource type, not necessarily globally unique.
+	Name() string
+}
 
 // Meta contains metadata for a resource.
 type Meta struct {
@@ -33,6 +59,9 @@ type FunctionAWS struct {
 	Memory int64
 }
 
+// Name returns a unique name to identify the function.
+func (f *Function) Name() string { return f.Meta.Name }
+
 // PendingUpload is a source code request that has been returned to the client.
 // When source is confirmed it is used to fetch the source and apply function
 // changes.
@@ -56,3 +85,6 @@ type Environment struct {
 	// Infrastructure defines what type the infrastructure type is for the environment.
 	Infrastructure InfrastructureType
 }
+
+// Name returns a unique name to identify the environment.
+func (f *Environment) Name() string { return f.Meta.Name }
