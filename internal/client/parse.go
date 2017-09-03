@@ -15,7 +15,7 @@ import (
 // Load loads a resource from a file. The file can be a yaml or json and can
 // contain one or more resources.
 func Load(file string) ([]Resource, error) {
-	// Open file and read it to memory
+	// Open file and read it to memory.
 	f, err := os.Open(file)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not load file")
@@ -29,7 +29,7 @@ func Load(file string) ([]Resource, error) {
 		return nil, err
 	}
 
-	// split possible multiple resources defined in file
+	// Split possible multiple resources defined in file.
 	docs, err := split(data)
 	if err != nil {
 		return nil, err
@@ -60,13 +60,13 @@ func split(data []byte) ([][]byte, error) {
 	trimmed := bytes.TrimFunc(data, unicode.IsSpace)
 
 	if bytes.HasPrefix(trimmed, []byte("{")) {
-		// Input is a simple json object, only one resrouce returned
+		// Input is a simple json object, only one resource returned.
 		out = [][]byte{data}
 		return out, nil
 	}
 
 	if bytes.HasPrefix(trimmed, []byte("[")) {
-		// Input is a json array, split it and return multiple values
+		// Input is a json array, split it and return multiple values.
 		var arr []json.RawMessage
 		if err := json.Unmarshal(data, &arr); err != nil {
 			return nil, err
@@ -78,7 +78,7 @@ func split(data []byte) ([][]byte, error) {
 		return out, nil
 	}
 
-	// Input is probably yaml, possibly containing multiple documents
+	// Input is probably yaml, possibly containing multiple documents.
 	split := bytes.Split(trimmed, []byte("\n---\n"))
 	for _, data := range split {
 		jsonData, err := yaml.YAMLToJSON(data)
@@ -92,7 +92,7 @@ func split(data []byte) ([][]byte, error) {
 }
 
 // parse parses a generic resource to a specific type. Returns nil if the
-// target doesn't look like a valid resource (missing type)
+// target doesn't look like a valid resource (missing type).
 func parse(data []byte, filepath string) (Resource, error) {
 	raw, err := parseRaw(data)
 	if err != nil {
@@ -112,12 +112,14 @@ func parse(data []byte, filepath string) (Resource, error) {
 	switch strings.ToLower(raw.Type) {
 	case "function":
 		return parseFunction(raw, filepath)
+	case "deployment":
+		return parseDeployment(raw, filepath)
 	default:
 		return nil, errors.Errorf("unknown resource type %s", raw.Type)
 	}
 }
 
-// rawResource represents a generic resource
+// rawResource represents a generic resource.
 type rawResource struct {
 	Type string
 	Meta *Meta
@@ -125,7 +127,7 @@ type rawResource struct {
 }
 
 // parseRaw parses a raw repsentation of a resource definition. This is used to
-// further process the resource, depending on its type
+// further process the resource, depending on its type.
 func parseRaw(data []byte) (*rawResource, error) {
 	var raw *rawResource
 	if err := yaml.Unmarshal(data, &raw); err != nil {
@@ -134,7 +136,7 @@ func parseRaw(data []byte) (*rawResource, error) {
 	return raw, nil
 }
 
-// parseFunction parses a function spec
+// parseFunction parses a function spec.
 func parseFunction(raw *rawResource, filepath string) (*functionResource, error) {
 	f := &functionResource{
 		file: filepath,
@@ -147,4 +149,19 @@ func parseFunction(raw *rawResource, filepath string) (*functionResource, error)
 	}
 
 	return f, nil
+}
+
+// parseDeployment parses a deployment spec.
+func parseDeployment(raw *rawResource, filepath string) (*deploymentResource, error) {
+	d := &deploymentResource{
+		file: filepath,
+		meta: raw.Meta,
+		spec: &DeploymentSpec{},
+	}
+
+	if err := json.Unmarshal(raw.Spec, d.spec); err != nil {
+		return nil, errors.Wrap(err, "could not unmarshal deployment resource")
+	}
+
+	return d, nil
 }

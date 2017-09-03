@@ -66,7 +66,7 @@ func TestLoad(t *testing.T) {
 			Error:    true,
 		},
 		{
-			TestName: "Valid (yml)",
+			TestName: "Valid function (yml)",
 			File:     "_testdata/load/function.yml",
 			Resources: []Resource{
 				&functionResource{
@@ -89,7 +89,32 @@ func TestLoad(t *testing.T) {
 			},
 		},
 		{
-			TestName: "Valid (json)",
+			TestName: "Valid deployment (yml)",
+			File:     "_testdata/load/deployment.yml",
+			Resources: []Resource{
+				&deploymentResource{
+					file: "_testdata/load/deployment.yml",
+					meta: &Meta{
+						Name: "test",
+						Labels: map[string]string{
+							"foo": "foobar",
+						},
+					},
+					spec: &DeploymentSpec{
+						EnvironmentLabels: map[string]string{
+							"foo": "foo",
+							"bar": "bar",
+						},
+						FunctionLabels: map[string]string{
+							"bar": "bar",
+							"baz": "baz",
+						},
+					},
+				},
+			},
+		},
+		{
+			TestName: "Valid function (json)",
 			File:     "_testdata/load/function.json",
 			Resources: []Resource{
 				&functionResource{

@@ -94,6 +94,29 @@ func getEnvironment(ctx context.Context, kv backend.KV, name string) (*Environme
 	return &env, nil
 }
 
+// getDeployment returns a deployment. Returns nil if the deployment does not
+// exist.
+func getDeployment(ctx context.Context, kv backend.KV, name string) (*Deployment, error) {
+	key, err := resourcePath(ResourceTypeDeployment, name)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get deployment key")
+	}
+	raw, err := kv.Get(ctx, key)
+	if err != nil {
+		if backend.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "could not get deployment from backend")
+	}
+
+	var deploy Deployment
+	if err := json.Unmarshal([]byte(raw), &deploy); err != nil {
+		return nil, errors.Wrap(err, "could not unmarshal deployment")
+	}
+
+	return &deploy, nil
+}
+
 // putResourcecreates or updates a generic resource.
 func putResource(ctx context.Context, kv backend.KV, resourceType ResourceType, resource Resource) error {
 	if resource == nil {

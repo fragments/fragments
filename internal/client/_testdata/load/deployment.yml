@@ -1,0 +1,12 @@
+type: deployment
+meta:
+  name: test
+  labels:
+    foo: foobar
+spec:
+  environment:
+    foo: foo
+    bar: bar
+  function:
+    bar: bar
+    baz: baz

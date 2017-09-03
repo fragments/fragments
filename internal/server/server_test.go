@@ -291,3 +291,51 @@ func TestCreateEnvironment(t *testing.T) {
 		})
 	}
 }
+
+func TestPutDeployment(t *testing.T) {
+	tests := []struct {
+		TestName string
+		Input    *Deployment
+		Error    bool
+	}{
+		{
+			TestName: "No input",
+			Input:    nil,
+			Error:    true,
+		},
+		{
+			TestName: "No name",
+			Input:    &Deployment{},
+			Error:    true,
+		},
+		{
+			TestName: "Ok",
+			Input: &Deployment{
+				Meta:              Meta{Name: "foo"},
+				EnvironmentLabels: map[string]string{"foo": "foo"},
+				FunctionLabels:    map[string]string{"bar": "bar"},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.TestName, func(t *testing.T) {
+			ctx := context.Background()
+			mockKV := backend.NewMemoryKV()
+
+			s := &Server{
+				StateStore: mockKV,
+			}
+
+			err := s.PutDeployment(ctx, test.Input)
+			if test.Error {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+
+			actual, _ := getDeployment(ctx, mockKV, test.Input.Name())
+			assert.Equal(t, test.Input, actual)
+		})
+	}
+}

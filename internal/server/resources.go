@@ -9,6 +9,8 @@ const (
 	ResourceTypeFunction ResourceType = "function"
 	// ResourceTypeEnvironment is a target deployment environment
 	ResourceTypeEnvironment ResourceType = "environment"
+	// ResourceTypeDeployment is a target deployment environment
+	ResourceTypeDeployment ResourceType = "deployment"
 )
 
 // InfrastructureType is a target infrastructure to deploy to
@@ -87,4 +89,20 @@ type Environment struct {
 }
 
 // Name returns a unique name to identify the environment.
-func (f *Environment) Name() string { return f.Meta.Name }
+func (e *Environment) Name() string { return e.Meta.Name }
+
+// Deployment represents a connection between functions to environments.
+type Deployment struct {
+	// Meta contains deployment metadata.
+	Meta Meta
+	// EnvironmentLabels is the label seletor for which environment(s) should be
+	// the destination of the deployment. The environment must have every label
+	// assigned to be included.
+	EnvironmentLabels map[string]string
+	// FunctionLabels is the label selector for which function(s) should be part
+	// of the deployment. Every label must match for the function to be included.
+	FunctionLabels map[string]string
+}
+
+// Name returns a unique name to identify the deployment.
+func (d *Deployment) Name() string { return d.Meta.Name }

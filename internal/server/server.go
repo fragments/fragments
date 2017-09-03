@@ -160,6 +160,22 @@ func (s *Server) CreateEnvironment(ctx context.Context, input *EnvironmentInput)
 	return nil
 }
 
+// PutDeployment creates or updates a deployment. In case the deployment already
+// exists it is updated.
+func (s *Server) PutDeployment(ctx context.Context, input *Deployment) error {
+	if input == nil {
+		return errors.New("no deployment supplied")
+	}
+	name := input.Name()
+	if name == "" {
+		return errors.New("deployment has no name")
+	}
+	if err := putResource(ctx, s.StateStore, ResourceTypeDeployment, input); err != nil {
+		return errors.Wrap(err, "could not store deployment")
+	}
+	return nil
+}
+
 // requestUpload creates a url the client can upload source code to. The upload
 // request is stored as a PendingUpload in the store so it can be retrieved
 // when the client confirms the upload.

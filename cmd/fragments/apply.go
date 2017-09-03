@@ -127,13 +127,22 @@ func newApplyCommand() *cobra.Command {
 		for _, r := range resources {
 			r := r
 			g.Go(func() error {
+				meta := r.Meta()
+				file := r.File()
 				if function, ok := r.(client.Function); ok {
-					meta := r.Meta()
-					file := r.File()
 					spec := function.Function()
-					return applyFunction(ctx, s, meta, file, spec, excludeSource)
+					if err := applyFunction(ctx, s, meta, file, spec, excludeSource); err != nil {
+						return errors.Wrap(err, "could not apply function")
+					}
+					return nil
 				}
-				return nil
+				if deployment, ok := r.(client.Deployment); ok {
+					if err := applyDeployment(ctx, s, meta, deployment.Deployment()); err != nil {
+						return errors.Wrap(err, "could not apply deployment")
+					}
+					return nil
+				}
+				return errors.Errorf("unsupported resource %q: %s", r.Type(), file)
 			})
 		}
 
@@ -216,6 +225,21 @@ func applyFunction(ctx context.Context, srv *server.Server, meta *client.Meta, f
 		}
 	}
 
+	return nil
+}
+
+func applyDeployment(ctx context.Context, srv *server.Server, meta *client.Meta, deployment *client.DeploymentSpec) error {
+	deploy := &server.Deployment{
+		Meta: server.Meta{
+			Name:   meta.Name,
+			Labels: meta.Labels,
+		},
+		EnvironmentLabels: deployment.EnvironmentLabels,
+		FunctionLabels:    deployment.FunctionLabels,
+	}
+	if err := srv.PutDeployment(ctx, deploy); err != nil {
+		return errors.Wrap(err, "PutDeployment failed")
+	}
 	return nil
 }
 
