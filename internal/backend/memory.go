@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -63,4 +64,27 @@ func (m *MemoryKV) Delete(ctx context.Context, key string) error {
 	delete(m.Data, key)
 	m.mu.Unlock()
 	return nil
+}
+
+// List lists keys in the memory store.
+func (m *MemoryKV) List(ctx context.Context, root string) (map[string]string, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	if !strings.HasSuffix(root, "/") {
+		root = root + "/"
+	}
+
+	out := make(map[string]string)
+	m.mu.Lock()
+	for k, v := range m.Data {
+		if strings.HasPrefix(k, root) {
+			key := strings.TrimPrefix(k, root)
+			out[key] = v
+		}
+	}
+	m.mu.Unlock()
+
+	return out, nil
 }
