@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
@@ -63,6 +64,26 @@ func (e *ETCD) Delete(ctx context.Context, key string) error {
 		return &NotFoundError{key}
 	}
 	return nil
+}
+
+// List lists keys in ETCD that have root as a prefix.
+func (e *ETCD) List(ctx context.Context, root string) (map[string]string, error) {
+	if !strings.HasSuffix(root, "/") {
+		root = root + "/"
+	}
+	res, err := e.client.Get(ctx, root, clientv3.WithPrefix())
+	if err != nil {
+		return nil, err
+	}
+
+	out := make(map[string]string)
+	for _, kv := range res.Kvs {
+		key := string(kv.Key)
+		key = strings.TrimPrefix(key, root)
+		out[key] = string(kv.Value)
+	}
+
+	return out, nil
 }
 
 // Close closes the connection to ETCD.

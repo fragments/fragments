@@ -338,3 +338,87 @@ func TestDelete(t *testing.T) {
 		})
 	}
 }
+
+func TestList(t *testing.T) {
+	targets := getTestTargets(t)
+
+	ctx := context.Background()
+	ctxCanceled, cancel := context.WithCancel(ctx)
+	cancel()
+
+	existing := map[string]string{
+		"/foo":         "foo",
+		"/foo/bar":     "bar",
+		"/foo/bar/baz": "baz",
+	}
+
+	tests := []struct {
+		TestName string
+		Context  context.Context
+		Root     string
+		Expected map[string]string
+		Error    bool
+	}{
+		{
+			TestName: "Context canceled",
+			Context:  ctxCanceled,
+			Root:     "foo",
+			Error:    true,
+		},
+		{
+			TestName: "No root match",
+			Context:  ctx,
+			Root:     "/bar",
+			Expected: map[string]string{},
+		},
+		{
+			TestName: "Match",
+			Context:  ctx,
+			Root:     "/foo/bar",
+			Expected: map[string]string{
+				"baz": "baz",
+			},
+		},
+		{
+			TestName: "Nested",
+			Context:  ctx,
+			Root:     "/foo",
+			Expected: map[string]string{
+				"bar":     "bar",
+				"bar/baz": "baz",
+			},
+		},
+	}
+
+	for _, target := range targets {
+		t.Run(target.TargetName, func(t *testing.T) {
+			testClient := target.TestClient(t)
+			client := target.New(testClient)
+			lister, ok := client.(Lister)
+			if !ok {
+				t.Logf("%s does not implement Lister", target.TargetName)
+				return
+			}
+
+			for k, v := range existing {
+				target.AddTestValue(t, testClient, k, v)
+			}
+
+			for _, test := range tests {
+				t.Run(test.TestName, func(t *testing.T) {
+					actual, err := lister.List(test.Context, test.Root)
+					if test.Error {
+						require.Error(t, err)
+						return
+					}
+					require.NoError(t, err)
+
+					assert.EqualValues(t, test.Expected, actual)
+				})
+			}
+			if closer, ok := client.(io.Closer); ok {
+				_ = closer.Close()
+			}
+		})
+	}
+}

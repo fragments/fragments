@@ -7,7 +7,7 @@ import (
 	"fmt"
 )
 
-// KV  interface is implemented by backends that persistently store key-value
+// The KV interface is implemented by backends that persistently store key-value
 // data.
 type KV interface {
 	// Put inserts a value under a key. In case the value already exists it is
@@ -19,6 +19,13 @@ type KV interface {
 	// Delete deletes a key. In case the key does not exist, returns NotFoundError
 	// if the key was not found.
 	Delete(ctx context.Context, key string) error
+}
+
+// The Lister interface is implemented by backends that can list keys under a
+// key.
+type Lister interface {
+	// List lists keys directly under a root key.
+	List(ctx context.Context, root string) (map[string]string, error)
 }
 
 // NotFoundError indicates that a key was not found.
