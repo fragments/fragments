@@ -1,4 +1,4 @@
-package server
+package state
 
 // ResourceType defines the type of a resource. It is used to group the same
 // resources in the backend.

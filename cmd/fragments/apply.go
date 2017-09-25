@@ -15,6 +15,7 @@ import (
 	"github.com/fragments/fragments/internal/client"
 	"github.com/fragments/fragments/internal/filestore"
 	"github.com/fragments/fragments/internal/server"
+	"github.com/fragments/fragments/internal/state"
 	"github.com/golang/sync/errgroup"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
@@ -195,16 +196,16 @@ func applyFunction(ctx context.Context, srv *server.Server, meta *client.Meta, f
 	}
 
 	// Construct request
-	function := &server.Function{
+	function := &state.Function{
 		Checksum: hex.EncodeToString(shasum),
-		Meta: server.Meta{
+		Meta: state.Meta{
 			Name:   meta.Name,
 			Labels: meta.Labels,
 		},
 		Runtime: spec.Runtime,
 	}
 	if spec.AWS != nil {
-		function.AWS = &server.FunctionAWS{
+		function.AWS = &state.FunctionAWS{
 			Timeout: spec.AWS.Timeout,
 			Memory:  spec.AWS.Memory,
 		}
@@ -229,8 +230,8 @@ func applyFunction(ctx context.Context, srv *server.Server, meta *client.Meta, f
 }
 
 func applyDeployment(ctx context.Context, srv *server.Server, meta *client.Meta, deployment *client.DeploymentSpec) error {
-	deploy := &server.Deployment{
-		Meta: server.Meta{
+	deploy := &state.Deployment{
+		Meta: state.Meta{
 			Name:   meta.Name,
 			Labels: meta.Labels,
 		},

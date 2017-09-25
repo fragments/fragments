@@ -5,6 +5,7 @@ import (
 
 	"github.com/fragments/fragments/internal/backend"
 	"github.com/fragments/fragments/internal/filestore"
+	"github.com/fragments/fragments/internal/state"
 	"github.com/pkg/errors"
 )
 
@@ -39,7 +40,7 @@ type UploadRequest struct {
 
 // PutFunction creates or updates a function. In case the function already
 // exists it is updated. If not, source upload is requested.
-func (s *Server) PutFunction(ctx context.Context, input *Function) (*UploadRequest, error) {
+func (s *Server) PutFunction(ctx context.Context, input *state.Function) (*UploadRequest, error) {
 	if input == nil {
 		return nil, errors.New("no function supplied")
 	}
@@ -48,7 +49,7 @@ func (s *Server) PutFunction(ctx context.Context, input *Function) (*UploadReque
 		return nil, errors.New("function has no meta or name")
 	}
 	// Get existing function
-	existing, err := getFunction(ctx, s.StateStore, name)
+	existing, err := state.GetFunction(ctx, s.StateStore, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not check existing function")
 	}
@@ -75,7 +76,7 @@ func (s *Server) ConfirmUpload(ctx context.Context, token string) error {
 		return errors.New("token not set")
 	}
 
-	upload, err := getPendingUpload(ctx, s.StateStore, token)
+	upload, err := state.GetPendingUpload(ctx, s.StateStore, token)
 	if err != nil {
 		return errors.Wrap(err, "could not get pending upload")
 	}
@@ -95,7 +96,7 @@ func (s *Server) ConfirmUpload(ctx context.Context, token string) error {
 		return errors.Wrap(err, "error storing function update")
 	}
 
-	if err := deletePendingUpload(ctx, s.StateStore, token); err != nil {
+	if err := state.DeletePendingUpload(ctx, s.StateStore, token); err != nil {
 		return errors.Wrap(err, "could not delete pending upload")
 	}
 
@@ -112,7 +113,7 @@ type EnvironmentInput struct {
 	// Labels are used to map a deployment to the environment.
 	Labels map[string]string
 	// Infrastructure is the type of infrastructure the environment is for
-	Infrastructure InfrastructureType
+	Infrastructure state.InfrastructureType
 	// Username is the username used to authenticate to the infrastructure
 	// provider.
 	Username string
@@ -132,7 +133,7 @@ func (s *Server) CreateEnvironment(ctx context.Context, input *EnvironmentInput)
 		return errors.New("environment has no name")
 	}
 
-	existing, err := getEnvironment(ctx, s.StateStore, name)
+	existing, err := state.GetEnvironment(ctx, s.StateStore, name)
 	if err != nil {
 		return errors.Wrap(err, "could not check existing environment")
 	}
@@ -145,15 +146,15 @@ func (s *Server) CreateEnvironment(ctx context.Context, input *EnvironmentInput)
 		return errors.Wrap(err, "error storing credentials")
 	}
 
-	env := &Environment{
-		Meta: Meta{
+	env := &state.Environment{
+		Meta: state.Meta{
 			Name:   name,
 			Labels: input.Labels,
 		},
 		Infrastructure: input.Infrastructure,
 	}
 
-	if err := putResource(ctx, s.StateStore, ResourceTypeEnvironment, env); err != nil {
+	if err := state.PutResource(ctx, s.StateStore, state.ResourceTypeEnvironment, env); err != nil {
 		return errors.Wrap(err, "could not store environment")
 	}
 
@@ -162,7 +163,7 @@ func (s *Server) CreateEnvironment(ctx context.Context, input *EnvironmentInput)
 
 // PutDeployment creates or updates a deployment. In case the deployment already
 // exists it is updated.
-func (s *Server) PutDeployment(ctx context.Context, input *Deployment) error {
+func (s *Server) PutDeployment(ctx context.Context, input *state.Deployment) error {
 	if input == nil {
 		return errors.New("no deployment supplied")
 	}
@@ -170,7 +171,7 @@ func (s *Server) PutDeployment(ctx context.Context, input *Deployment) error {
 	if name == "" {
 		return errors.New("deployment has no name")
 	}
-	if err := putResource(ctx, s.StateStore, ResourceTypeDeployment, input); err != nil {
+	if err := state.PutResource(ctx, s.StateStore, state.ResourceTypeDeployment, input); err != nil {
 		return errors.Wrap(err, "could not store deployment")
 	}
 	return nil
@@ -179,7 +180,7 @@ func (s *Server) PutDeployment(ctx context.Context, input *Deployment) error {
 // requestUpload creates a url the client can upload source code to. The upload
 // request is stored as a PendingUpload in the store so it can be retrieved
 // when the client confirms the upload.
-func (s *Server) requestUpload(ctx context.Context, input *Function, existing *Function) (*UploadRequest, error) {
+func (s *Server) requestUpload(ctx context.Context, input *state.Function, existing *state.Function) (*UploadRequest, error) {
 	token := s.GenerateToken()
 
 	url, err := s.SourceStore.NewUploadURL(token)
@@ -187,7 +188,7 @@ func (s *Server) requestUpload(ctx context.Context, input *Function, existing *F
 		return nil, errors.New("could not create upload url")
 	}
 
-	pendingUpload := &PendingUpload{
+	pendingUpload := &state.PendingUpload{
 		Filename: token,
 		Function: input,
 	}
@@ -195,7 +196,7 @@ func (s *Server) requestUpload(ctx context.Context, input *Function, existing *F
 		pendingUpload.PreviousFilename = existing.SourceFilename
 	}
 
-	if err := putPendingUpload(ctx, s.StateStore, token, pendingUpload); err != nil {
+	if err := state.PutPendingUpload(ctx, s.StateStore, token, pendingUpload); err != nil {
 		return nil, errors.Wrap(err, "could not store pending upload in backend")
 	}
 
@@ -210,8 +211,8 @@ func (s *Server) requestUpload(ctx context.Context, input *Function, existing *F
 // updateFunctionConfiguration updates the function's configuration
 // (performance specs, environment variables etc) without updating the source
 // code.
-func (s *Server) updateFunctionConfiguration(ctx context.Context, input *Function) error {
-	if err := putResource(ctx, s.StateStore, ResourceTypeFunction, input); err != nil {
+func (s *Server) updateFunctionConfiguration(ctx context.Context, input *state.Function) error {
+	if err := state.PutResource(ctx, s.StateStore, state.ResourceTypeFunction, input); err != nil {
 		return errors.Wrap(err, "could not update function configuration")
 	}
 	return nil
