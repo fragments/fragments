@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: golang:1.8
+      - image: golang:1.9
       - image: quay.io/coreos/etcd:v3.2.5
       - image: vault:0.8.1
         environment:
