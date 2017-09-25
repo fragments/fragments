@@ -6,12 +6,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+func modelListPath(resType ModelType) string {
+	return fmt.Sprintf("/models/%s", resType)
+}
+
 // modelPath constructs a path to store models under in the backend.
 func modelPath(modelType ModelType, name string) (string, error) {
 	if name == "" {
 		return "", errors.New("name is required")
 	}
-	return fmt.Sprintf("/models/%s/%s", modelType, name), nil
+	return fmt.Sprintf("%s/%s", modelListPath(modelType), name), nil
 }
 
 // uploadPath builds a path that's used for storing pending uploads.
