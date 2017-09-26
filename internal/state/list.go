@@ -78,3 +78,27 @@ func ListDeployments(ctx context.Context, kv backend.Lister, matchers ...matcher
 
 	return result, nil
 }
+
+// ListEnvironments lists environments. Returns all environments if no matchers
+// are provided.
+func ListEnvironments(ctx context.Context, kv backend.Lister, matchers ...matcher) ([]*Environment, error) {
+	key := modelListPath(ModelTypeEnvironment)
+
+	items, err := kv.List(ctx, key)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not list environments")
+	}
+
+	result := []*Environment{}
+	for _, raw := range items {
+		var environment Environment
+		if err := json.Unmarshal([]byte(raw), &environment); err != nil {
+			return nil, errors.Wrap(err, "could not unmarshal environment")
+		}
+		if matchesAll(&environment.Meta, matchers) {
+			result = append(result, &environment)
+		}
+	}
+
+	return result, nil
+}
