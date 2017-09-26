@@ -102,3 +102,27 @@ func ListEnvironments(ctx context.Context, kv backend.Lister, matchers ...matche
 
 	return result, nil
 }
+
+// ListFunctions lists functions. Returns all functions if no matchers
+// are provided.
+func ListFunctions(ctx context.Context, kv backend.Lister, matchers ...matcher) ([]*Function, error) {
+	key := modelListPath(ModelTypeFunction)
+
+	items, err := kv.List(ctx, key)
+	if err != nil {
+		return nil, errors.Wrap(err, "could not list functions")
+	}
+
+	result := []*Function{}
+	for _, raw := range items {
+		var function Function
+		if err := json.Unmarshal([]byte(raw), &function); err != nil {
+			return nil, errors.Wrap(err, "could not unmarshal function")
+		}
+		if matchesAll(&function.Meta, matchers) {
+			result = append(result, &function)
+		}
+	}
+
+	return result, nil
+}

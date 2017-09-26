@@ -196,3 +196,97 @@ func TestListEnvironments(t *testing.T) {
 		})
 	}
 }
+
+func TestListFunctions(t *testing.T) {
+	foo := &Function{
+		Meta: Meta{
+			Name: "foo",
+			Labels: map[string]string{
+				"foo": "foo",
+				"bar": "bar",
+			},
+		},
+	}
+
+	bar := &Function{
+		Meta: Meta{
+			Name: "bar",
+			Labels: map[string]string{
+				"bar": "bar",
+				"baz": "baz",
+			},
+		},
+	}
+
+	baz := &Function{
+		Meta: Meta{
+			Name: "baz",
+		},
+	}
+
+	ctx := context.Background()
+	kv := backend.NewMemoryKV()
+	err := PutModel(ctx, kv, ModelTypeFunction, foo)
+	require.NoError(t, err)
+	err = PutModel(ctx, kv, ModelTypeFunction, bar)
+	require.NoError(t, err)
+	err = PutModel(ctx, kv, ModelTypeFunction, baz)
+	require.NoError(t, err)
+
+	tests := []struct {
+		TestName string
+		Matchers []matcher
+		Expected []*Function
+		Error    bool
+	}{
+		{
+			TestName: "No matchers",
+			Expected: []*Function{foo, bar, baz},
+		},
+		{
+			TestName: "Label matcher (match all)",
+			Expected: []*Function{foo, bar},
+			Matchers: []matcher{
+				&LabelMatcher{
+					Labels: map[string]string{
+						"bar": "bar",
+					},
+				},
+			},
+		},
+		{
+			TestName: "Label matcher (match one)",
+			Expected: []*Function{foo},
+			Matchers: []matcher{
+				&LabelMatcher{
+					Labels: map[string]string{
+						"foo": "foo",
+					},
+				},
+			},
+		},
+		{
+			TestName: "Label matcher (match none)",
+			Expected: []*Function{},
+			Matchers: []matcher{
+				&LabelMatcher{
+					Labels: map[string]string{
+						"foo": "bar",
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.TestName, func(t *testing.T) {
+			actual, err := ListFunctions(ctx, kv, test.Matchers...)
+			if test.Error {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Len(t, actual, len(test.Expected))
+		})
+	}
+}
