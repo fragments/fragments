@@ -68,13 +68,13 @@ func newEnvironmentCreateCommand() *cobra.Command {
 			os.Exit(1)
 		}
 
-		kv, err := getKV(flags)
+		etcd, err := getETCD(flags)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		}
 
-		secrets, err := getSecretKV(flags)
+		vault, err := getVault(flags)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
@@ -88,11 +88,15 @@ func newEnvironmentCreateCommand() *cobra.Command {
 			Password:       *password,
 		}
 
-		s := server.New(kv, secrets, nil)
+		s := server.New(etcd, vault, nil)
 		ctx := context.TODO()
 		if err := s.CreateEnvironment(ctx, input); err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
+		}
+
+		if err := etcd.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "could not close etcd: %s\n", err)
 		}
 	}
 

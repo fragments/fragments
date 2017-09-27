@@ -24,7 +24,7 @@ func main() {
 	_ = cmd.Execute()
 }
 
-func getKV(flags *pflag.FlagSet) (backend.KV, error) {
+func getETCD(flags *pflag.FlagSet) (*backend.ETCD, error) {
 	endpoints, err := flags.GetStringSlice("etcd")
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func getKV(flags *pflag.FlagSet) (backend.KV, error) {
 	return etcd, nil
 }
 
-func getSecretKV(flags *pflag.FlagSet) (backend.KV, error) {
+func getVault(flags *pflag.FlagSet) (*backend.Vault, error) {
 	address, err := flags.GetString("vault")
 	if err != nil {
 		return nil, err

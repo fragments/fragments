@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -117,13 +116,13 @@ func newApplyCommand() *cobra.Command {
 			os.Exit(1)
 		}
 
-		kv, err := getKV(flags)
+		etcd, err := getETCD(flags)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", err)
 			os.Exit(1)
 		}
 
-		s := server.New(kv, nil, sourceStore)
+		s := server.New(etcd, nil, sourceStore)
 		g, ctx := errgroup.WithContext(ctx)
 		for _, r := range models {
 			r := r
@@ -152,10 +151,8 @@ func newApplyCommand() *cobra.Command {
 			os.Exit(1)
 		}
 
-		if kvCloser, ok := kv.(io.Closer); ok {
-			if err := kvCloser.Close(); err != nil {
-				fmt.Fprintf(os.Stderr, "could not close etcd: %s\n", err)
-			}
+		if err := etcd.Close(); err != nil {
+			fmt.Fprintf(os.Stderr, "could not close etcd: %s\n", err)
 		}
 	}
 
