@@ -6,13 +6,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-// CheckDuplicates checks that the list of resources doesn't have one or more
-// resources with the same type and name
-func CheckDuplicates(resources []Resource) error {
+// CheckDuplicates checks that the list of models doesn't have one or more
+// models with the same type and name
+func CheckDuplicates(models []Model) error {
 	// resMap is a map of type -> name -> files
-	resMap := make(map[ResourceType]map[string][]string)
+	resMap := make(map[ModelType]map[string][]string)
 
-	for _, r := range resources {
+	for _, r := range models {
 		resType := r.Type()
 		name := r.Meta().Name
 

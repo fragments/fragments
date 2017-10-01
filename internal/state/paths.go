@@ -6,12 +6,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-// resourcePath constructs a path to store resources under in the backend.
-func resourcePath(resType ResourceType, name string) (string, error) {
+// modelPath constructs a path to store models under in the backend.
+func modelPath(modelType ModelType, name string) (string, error) {
 	if name == "" {
 		return "", errors.New("name is required")
 	}
-	return fmt.Sprintf("/resources/%s/%s", resType, name), nil
+	return fmt.Sprintf("/models/%s/%s", modelType, name), nil
 }
 
 // uploadPath builds a path that's used for storing pending uploads.

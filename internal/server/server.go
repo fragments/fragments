@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Server is the fragments server that accepts resources and keeps them in the
+// Server is the fragments server that accepts models and keeps them in the
 // store.
 type Server struct {
 	StateStore    backend.KV
@@ -154,7 +154,7 @@ func (s *Server) CreateEnvironment(ctx context.Context, input *EnvironmentInput)
 		Infrastructure: input.Infrastructure,
 	}
 
-	if err := state.PutResource(ctx, s.StateStore, state.ResourceTypeEnvironment, env); err != nil {
+	if err := state.PutModel(ctx, s.StateStore, state.ModelTypeEnvironment, env); err != nil {
 		return errors.Wrap(err, "could not store environment")
 	}
 
@@ -171,7 +171,7 @@ func (s *Server) PutDeployment(ctx context.Context, input *state.Deployment) err
 	if name == "" {
 		return errors.New("deployment has no name")
 	}
-	if err := state.PutResource(ctx, s.StateStore, state.ResourceTypeDeployment, input); err != nil {
+	if err := state.PutModel(ctx, s.StateStore, state.ModelTypeDeployment, input); err != nil {
 		return errors.Wrap(err, "could not store deployment")
 	}
 	return nil
@@ -212,7 +212,7 @@ func (s *Server) requestUpload(ctx context.Context, input *state.Function, exist
 // (performance specs, environment variables etc) without updating the source
 // code.
 func (s *Server) updateFunctionConfiguration(ctx context.Context, input *state.Function) error {
-	if err := state.PutResource(ctx, s.StateStore, state.ResourceTypeFunction, input); err != nil {
+	if err := state.PutModel(ctx, s.StateStore, state.ModelTypeFunction, input); err != nil {
 		return errors.Wrap(err, "could not update function configuration")
 	}
 	return nil

@@ -86,7 +86,7 @@ func TestPutFunction(t *testing.T) {
 			ctx := context.Background()
 			mockKV := backend.NewMemoryKV()
 			if test.Existing != nil {
-				_ = state.PutResource(ctx, mockKV, state.ResourceTypeFunction, test.Existing)
+				_ = state.PutModel(ctx, mockKV, state.ModelTypeFunction, test.Existing)
 			}
 
 			mockSourceStore := &fsmocks.SourceTarget{}
@@ -252,7 +252,7 @@ func TestCreateEnvironment(t *testing.T) {
 			ctx := context.Background()
 			mockKV := backend.NewMemoryKV()
 			if test.Existing != nil {
-				_ = state.PutResource(ctx, mockKV, state.ResourceTypeEnvironment, test.Existing)
+				_ = state.PutModel(ctx, mockKV, state.ModelTypeEnvironment, test.Existing)
 			}
 
 			mockSecrets := backend.NewMemoryKV()

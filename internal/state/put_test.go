@@ -9,18 +9,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPutResource(t *testing.T) {
+func TestPutModel(t *testing.T) {
 	ctx := context.Background()
 	kv := backend.NewMemoryKV()
 
 	tests := []struct {
-		TestName     string
-		Input        Resource
-		ResourceType ResourceType
-		Error        bool
+		TestName  string
+		Input     Model
+		ModelType ModelType
+		Error     bool
 	}{
 		{
-			TestName: "No resource",
+			TestName: "No model",
 			Error:    true,
 		},
 		{
@@ -35,7 +35,7 @@ func TestPutResource(t *testing.T) {
 					Name: "foo",
 				},
 			},
-			ResourceType: ResourceTypeFunction,
+			ModelType: ModelTypeFunction,
 		},
 		{
 			TestName: "Environment",
@@ -50,19 +50,19 @@ func TestPutResource(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
-			err := PutResource(ctx, kv, test.ResourceType, test.Input)
+			err := PutModel(ctx, kv, test.ModelType, test.Input)
 			if test.Error {
 				require.Error(t, err)
 				return
 			}
 			require.NoError(t, err)
 
-			switch test.ResourceType {
-			case ResourceTypeFunction:
+			switch test.ModelType {
+			case ModelTypeFunction:
 				actual, err := GetFunction(ctx, kv, test.Input.Name())
 				require.NoError(t, err)
 				assert.Equal(t, test.Input, actual)
-			case ResourceTypeEnvironment:
+			case ModelTypeEnvironment:
 				actual, err := GetEnvironment(ctx, kv, test.Input.Name())
 				require.NoError(t, err)
 				assert.Equal(t, test.Input, actual)

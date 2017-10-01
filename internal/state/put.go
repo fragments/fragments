@@ -8,24 +8,24 @@ import (
 	"github.com/pkg/errors"
 )
 
-// PutResource creates or updates a generic resource.
-func PutResource(ctx context.Context, kv backend.KV, resourceType ResourceType, resource Resource) error {
-	if resource == nil {
-		return errors.New("resource is nil")
+// PutModel creates or updates a generic model.
+func PutModel(ctx context.Context, kv backend.KV, modelType ModelType, model Model) error {
+	if model == nil {
+		return errors.New("model is nil")
 	}
-	name := resource.Name()
-	key, err := resourcePath(resourceType, name)
+	name := model.Name()
+	key, err := modelPath(modelType, name)
 	if err != nil {
-		return errors.Wrap(err, "could not construct resource key")
+		return errors.Wrap(err, "could not construct model key")
 	}
 
-	raw, err := json.Marshal(resource)
+	raw, err := json.Marshal(model)
 	if err != nil {
-		return errors.Wrap(err, "could not marshal resource")
+		return errors.Wrap(err, "could not marshal model")
 	}
 
 	if err := kv.Put(ctx, key, string(raw)); err != nil {
-		return errors.Wrap(err, "could not store resource")
+		return errors.Wrap(err, "could not store model")
 	}
 
 	return nil

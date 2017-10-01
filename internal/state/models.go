@@ -1,16 +1,16 @@
 package state
 
-// ResourceType defines the type of a resource. It is used to group the same
-// resources in the backend.
-type ResourceType string
+// ModelType defines the type of a model. It is used to group the same
+// models in the backend.
+type ModelType string
 
 const (
-	// ResourceTypeFunction is a function resource.
-	ResourceTypeFunction ResourceType = "function"
-	// ResourceTypeEnvironment is a target deployment environment
-	ResourceTypeEnvironment ResourceType = "environment"
-	// ResourceTypeDeployment is a target deployment environment
-	ResourceTypeDeployment ResourceType = "deployment"
+	// ModelTypeFunction is a function.
+	ModelTypeFunction ModelType = "function"
+	// ModelTypeEnvironment is a target deployment environment
+	ModelTypeEnvironment ModelType = "environment"
+	// ModelTypeDeployment is a target deployment environment
+	ModelTypeDeployment ModelType = "deployment"
 )
 
 // InfrastructureType is a target infrastructure to deploy to
@@ -21,19 +21,19 @@ const (
 	InfrastructureTypeAWS InfrastructureType = "aws"
 )
 
-// Resource is a generic resource.
-type Resource interface {
-	// Name returns a unique name to identify the resource. The name is unique
-	// within the resource type, not necessarily globally unique.
+// Model is a a generic model.
+type Model interface {
+	// Name returns a unique name to identify the model. The name is unique
+	// within the model type, not necessarily globally unique.
 	Name() string
 }
 
-// Meta contains metadata for a resource.
+// Meta contains metadata for a model.
 type Meta struct {
-	// Name is the name for a resource. It must be unique among other resource of
+	// Name is the name for a model. It must be unique among other models of
 	// the same type.
 	Name string
-	// Labels are used to identify a resource.
+	// Labels are used to identify a model.
 	Labels map[string]string
 }
 

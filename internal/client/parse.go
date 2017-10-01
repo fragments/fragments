@@ -12,9 +12,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Load loads a resource from a file. The file can be a yaml or json and can
-// contain one or more resources.
-func Load(file string) ([]Resource, error) {
+// Load loads a model from a file. The file can be a yaml or json and can
+// contain one or more models.
+func Load(file string) ([]Model, error) {
 	// Open file and read it to memory.
 	f, err := os.Open(file)
 	if err != nil {
@@ -29,14 +29,14 @@ func Load(file string) ([]Resource, error) {
 		return nil, err
 	}
 
-	// Split possible multiple resources defined in file.
+	// Split possible multiple models defined in file.
 	docs, err := split(data)
 	if err != nil {
 		return nil, err
 	}
 
-	// parse resources
-	out := []Resource{}
+	// parse models
+	out := []Model{}
 	for _, d := range docs {
 		r, err := parse(d, file)
 		if err != nil {
@@ -50,8 +50,8 @@ func Load(file string) ([]Resource, error) {
 	return out, nil
 }
 
-// split extracts individual resources from a byte array and returns the json
-// representation of each resource.
+// split extracts individual models from a byte array and returns the json
+// representation of each model.
 // Supports loading a single json object, a json array, single yaml object and
 // multiple documents in a yaml file. For yaml documents the result is
 // converted to json.
@@ -60,7 +60,7 @@ func split(data []byte) ([][]byte, error) {
 	trimmed := bytes.TrimFunc(data, unicode.IsSpace)
 
 	if bytes.HasPrefix(trimmed, []byte("{")) {
-		// Input is a simple json object, only one resource returned.
+		// Input is a simple json object, only one model returned.
 		out = [][]byte{data}
 		return out, nil
 	}
@@ -91,22 +91,22 @@ func split(data []byte) ([][]byte, error) {
 	return out, nil
 }
 
-// parse parses a generic resource to a specific type. Returns nil if the
-// target doesn't look like a valid resource (missing type).
-func parse(data []byte, filepath string) (Resource, error) {
+// parse parses a generic model to a specific type. Returns nil if the
+// target doesn't look like a valid model (missing type).
+func parse(data []byte, filepath string) (Model, error) {
 	raw, err := parseRaw(data)
 	if err != nil {
-		return nil, errors.Wrap(err, "could not parse resource")
+		return nil, errors.Wrap(err, "could not parse model")
 	}
 	if raw.Type == "" {
-		// No type defined, don't consider this as a valid resource
+		// No type defined, don't consider this as a valid model
 		return nil, nil
 	}
 	if raw.Meta == nil {
-		return nil, errors.New("resource meta not set")
+		return nil, errors.New("model meta not set")
 	}
 	if raw.Meta.Name == "" {
-		return nil, errors.New("resource name not set")
+		return nil, errors.New("model name not set")
 	}
 
 	switch strings.ToLower(raw.Type) {
@@ -115,21 +115,21 @@ func parse(data []byte, filepath string) (Resource, error) {
 	case "deployment":
 		return parseDeployment(raw, filepath)
 	default:
-		return nil, errors.Errorf("unknown resource type %s", raw.Type)
+		return nil, errors.Errorf("unknown model type %s", raw.Type)
 	}
 }
 
-// rawResource represents a generic resource.
-type rawResource struct {
+// rawModel represents a generic model.
+type rawModel struct {
 	Type string
 	Meta *Meta
 	Spec json.RawMessage
 }
 
-// parseRaw parses a raw repsentation of a resource definition. This is used to
-// further process the resource, depending on its type.
-func parseRaw(data []byte) (*rawResource, error) {
-	var raw *rawResource
+// parseRaw parses a raw repsentation of a model definition. This is used to
+// further process the model, depending on its type.
+func parseRaw(data []byte) (*rawModel, error) {
+	var raw *rawModel
 	if err := yaml.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
@@ -137,30 +137,30 @@ func parseRaw(data []byte) (*rawResource, error) {
 }
 
 // parseFunction parses a function spec.
-func parseFunction(raw *rawResource, filepath string) (*functionResource, error) {
-	f := &functionResource{
+func parseFunction(raw *rawModel, filepath string) (*functionModel, error) {
+	f := &functionModel{
 		file: filepath,
 		meta: raw.Meta,
 		spec: &FunctionSpec{},
 	}
 
 	if err := json.Unmarshal(raw.Spec, f.spec); err != nil {
-		return nil, errors.Wrap(err, "could not unmarshal function resource")
+		return nil, errors.Wrap(err, "could not unmarshal function model")
 	}
 
 	return f, nil
 }
 
 // parseDeployment parses a deployment spec.
-func parseDeployment(raw *rawResource, filepath string) (*deploymentResource, error) {
-	d := &deploymentResource{
+func parseDeployment(raw *rawModel, filepath string) (*deploymentModel, error) {
+	d := &deploymentModel{
 		file: filepath,
 		meta: raw.Meta,
 		spec: &DeploymentSpec{},
 	}
 
 	if err := json.Unmarshal(raw.Spec, d.spec); err != nil {
-		return nil, errors.Wrap(err, "could not unmarshal deployment resource")
+		return nil, errors.Wrap(err, "could not unmarshal deployment model")
 	}
 
 	return d, nil

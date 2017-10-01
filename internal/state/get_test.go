@@ -18,7 +18,7 @@ func TestGetFunction(t *testing.T) {
 
 	ctx := context.Background()
 	kv := backend.NewMemoryKV()
-	err := PutResource(ctx, kv, ResourceTypeFunction, existing)
+	err := PutModel(ctx, kv, ModelTypeFunction, existing)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -127,7 +127,7 @@ func TestGetEnvironment(t *testing.T) {
 
 	ctx := context.Background()
 	kv := backend.NewMemoryKV()
-	err := PutResource(ctx, kv, ResourceTypeEnvironment, existing)
+	err := PutModel(ctx, kv, ModelTypeEnvironment, existing)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -178,7 +178,7 @@ func TestGetDeployment(t *testing.T) {
 
 	ctx := context.Background()
 	kv := backend.NewMemoryKV()
-	err := PutResource(ctx, kv, ResourceTypeDeployment, existing)
+	err := PutModel(ctx, kv, ModelTypeDeployment, existing)
 	require.NoError(t, err)
 
 	tests := []struct {

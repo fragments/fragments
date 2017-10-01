@@ -7,32 +7,32 @@ import (
 )
 
 func TestCheckDuplicates(t *testing.T) {
-	functionA := &functionResource{
+	functionA := &functionModel{
 		meta: &Meta{
 			Name: "A",
 		},
 	}
 
-	functionB := &functionResource{
+	functionB := &functionModel{
 		meta: &Meta{
 			Name: "B",
 		},
 	}
 
-	other := &testResource{
+	other := &testModel{
 		meta: &Meta{
 			Name: "A",
 		},
 	}
 
 	tests := []struct {
-		TestName  string
-		Resources []Resource
-		Error     bool
+		TestName string
+		Models   []Model
+		Error    bool
 	}{
 		{
 			TestName: "Duplicates",
-			Resources: []Resource{
+			Models: []Model{
 				functionA,
 				functionA,
 				functionB,
@@ -41,14 +41,14 @@ func TestCheckDuplicates(t *testing.T) {
 		},
 		{
 			TestName: "No duplicates",
-			Resources: []Resource{
+			Models: []Model{
 				functionA,
 				functionB,
 			},
 		},
 		{
 			TestName: "Other type",
-			Resources: []Resource{
+			Models: []Model{
 				functionA,
 				other,
 			},
@@ -57,7 +57,7 @@ func TestCheckDuplicates(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
-			err := CheckDuplicates(test.Resources)
+			err := CheckDuplicates(test.Models)
 			if test.Error {
 				require.Error(t, err)
 				return
@@ -67,11 +67,11 @@ func TestCheckDuplicates(t *testing.T) {
 	}
 }
 
-type testResource struct {
+type testModel struct {
 	meta *Meta
 }
 
-func (t *testResource) File() string       { return "test" }
-func (t *testResource) Meta() *Meta        { return t.meta }
-func (t *testResource) Type() ResourceType { return "test" }
-func (t *testResource) testString() string { return "test" }
+func (t *testModel) File() string       { return "test" }
+func (t *testModel) Meta() *Meta        { return t.meta }
+func (t *testModel) Type() ModelType    { return "test" }
+func (t *testModel) testString() string { return "test" }

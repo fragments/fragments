@@ -14,8 +14,8 @@ type WalkOptions struct {
 	Ignore []string
 }
 
-// Walk walks a target directory looking for resources. Returns a list of
-// potential resource definitions.
+// Walk walks a target directory looking for models. Returns a list of
+// potential model definitions.
 func Walk(dir string, opts *WalkOptions) ([]string, error) {
 	out := []string{}
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
@@ -63,7 +63,7 @@ func Walk(dir string, opts *WalkOptions) ([]string, error) {
 		// Determine if file is a function config
 		ext := strings.ToLower(filepath.Ext(path))
 		if ext != ".json" && ext != ".yml" && ext != ".yaml" {
-			// Extension doesn't match a resource config's extension
+			// Extension doesn't match a model config's extension
 			return nil
 		}
 

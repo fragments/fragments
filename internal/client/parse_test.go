@@ -10,10 +10,10 @@ import (
 
 func TestLoad(t *testing.T) {
 	tests := []struct {
-		TestName  string
-		File      string
-		Error     bool
-		Resources []Resource
+		TestName string
+		File     string
+		Error    bool
+		Models   []Model
 	}{
 		{
 			TestName: "No file",
@@ -46,9 +46,9 @@ func TestLoad(t *testing.T) {
 			Error:    true,
 		},
 		{
-			TestName:  "Skip",
-			File:      "_testdata/load/skip.yml",
-			Resources: nil,
+			TestName: "Skip",
+			File:     "_testdata/load/skip.yml",
+			Models:   nil,
 		},
 		{
 			TestName: "Invalid (no meta)",
@@ -68,8 +68,8 @@ func TestLoad(t *testing.T) {
 		{
 			TestName: "Valid function (yml)",
 			File:     "_testdata/load/function.yml",
-			Resources: []Resource{
-				&functionResource{
+			Models: []Model{
+				&functionModel{
 					file: "_testdata/load/function.yml",
 					meta: &Meta{
 						Name: "test",
@@ -91,8 +91,8 @@ func TestLoad(t *testing.T) {
 		{
 			TestName: "Valid deployment (yml)",
 			File:     "_testdata/load/deployment.yml",
-			Resources: []Resource{
-				&deploymentResource{
+			Models: []Model{
+				&deploymentModel{
 					file: "_testdata/load/deployment.yml",
 					meta: &Meta{
 						Name: "test",
@@ -116,8 +116,8 @@ func TestLoad(t *testing.T) {
 		{
 			TestName: "Valid function (json)",
 			File:     "_testdata/load/function.json",
-			Resources: []Resource{
-				&functionResource{
+			Models: []Model{
+				&functionModel{
 					file: "_testdata/load/function.json",
 					meta: &Meta{
 						Name: "test-json",
@@ -139,8 +139,8 @@ func TestLoad(t *testing.T) {
 		{
 			TestName: "Multiple (yaml)",
 			File:     "_testdata/load/function-multiple.yml",
-			Resources: []Resource{
-				&functionResource{
+			Models: []Model{
+				&functionModel{
 					file: "_testdata/load/function-multiple.yml",
 					meta: &Meta{
 						Name: "test1",
@@ -149,7 +149,7 @@ func TestLoad(t *testing.T) {
 						Runtime: "go",
 					},
 				},
-				&functionResource{
+				&functionModel{
 					file: "_testdata/load/function-multiple.yml",
 					meta: &Meta{
 						Name: "test2",
@@ -163,8 +163,8 @@ func TestLoad(t *testing.T) {
 		{
 			TestName: "Multiple (json)",
 			File:     "_testdata/load/function-multiple.json",
-			Resources: []Resource{
-				&functionResource{
+			Models: []Model{
+				&functionModel{
 					file: "_testdata/load/function-multiple.json",
 					meta: &Meta{
 						Name: "test1-json",
@@ -176,7 +176,7 @@ func TestLoad(t *testing.T) {
 						},
 					},
 				},
-				&functionResource{
+				&functionModel{
 					file: "_testdata/load/function-multiple.json",
 					meta: &Meta{
 						Name: "test2-json",
@@ -191,33 +191,33 @@ func TestLoad(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
-			resources, err := Load(test.File)
+			models, err := Load(test.File)
 			if test.Error {
 				require.Error(t, err)
 				return
 			}
 			require.NoError(t, err)
-			assert.Len(t, resources, len(test.Resources), "number of resources returned does not match")
+			assert.Len(t, models, len(test.Models), "number of models returned does not match")
 			missing := false
-			for _, expected := range test.Resources {
+			for _, expected := range test.Models {
 				found := false
-				for _, actual := range resources {
+				for _, actual := range models {
 					if expected.testString() == actual.testString() {
 						found = true
 						break
 					}
 				}
 				if !found {
-					t.Errorf("resource not found in results:\n\n%s\n\n", expected.testString())
+					t.Errorf("model not found in results:\n\n%s\n\n", expected.testString())
 					missing = true
 				}
 			}
 			if missing {
 				str := []string{}
-				for _, r := range resources {
+				for _, r := range models {
 					str = append(str, r.testString())
 				}
-				t.Logf("\nParsed the following resources:\n\n%s", strings.Join(str, "---\n"))
+				t.Logf("\nParsed the following models:\n\n%s", strings.Join(str, "---\n"))
 			}
 		})
 	}

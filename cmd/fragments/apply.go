@@ -25,7 +25,7 @@ import (
 func newApplyCommand() *cobra.Command {
 	var cmd = &cobra.Command{
 		Use:   "apply [dir]",
-		Short: "Apply resource changes",
+		Short: "Apply model changes",
 	}
 
 	flags := cmd.Flags()
@@ -54,31 +54,31 @@ func newApplyCommand() *cobra.Command {
 			Ignore: *ignore,
 		}
 
-		// Loop through all targets to resolve resources
-		resourcePaths := []string{}
+		// Loop through all targets to resolve models
+		modelPaths := []string{}
 		for _, target := range args {
 			paths, err := client.Walk(target, walkOptions)
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "%s: %s\n", target, err)
 				os.Exit(1)
 			}
-			resourcePaths = append(resourcePaths, paths...)
+			modelPaths = append(modelPaths, paths...)
 		}
 
-		resources := []client.Resource{}
-		for _, path := range resourcePaths {
+		models := []client.Model{}
+		for _, path := range modelPaths {
 			res, err := client.Load(path)
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "could not load resource: %s: %s\n", err, path)
+				fmt.Fprintf(os.Stderr, "could not load model: %s: %s\n", err, path)
 				os.Exit(1)
 			}
-			// A nil resource is returned in case the resource was not found in file
+			// A nil model is returned in case a model was not found in file
 			if res != nil {
-				resources = append(resources, res...)
+				models = append(models, res...)
 			}
 		}
 
-		if err := client.CheckDuplicates(resources); err != nil {
+		if err := client.CheckDuplicates(models); err != nil {
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "%s\n", err)
 				os.Exit(1)
@@ -97,8 +97,8 @@ func newApplyCommand() *cobra.Command {
 		}()
 
 		excludeSource := *ignore
-		for _, r := range resources {
-			if r.Type() == client.ResourceTypeFunction {
+		for _, r := range models {
+			if r.Type() == client.ModelTypeFunction {
 				excludeSource = append(excludeSource, filepath.Dir(r.File()))
 			}
 		}
@@ -125,7 +125,7 @@ func newApplyCommand() *cobra.Command {
 
 		s := server.New(kv, nil, sourceStore)
 		g, ctx := errgroup.WithContext(ctx)
-		for _, r := range resources {
+		for _, r := range models {
 			r := r
 			g.Go(func() error {
 				meta := r.Meta()
@@ -143,7 +143,7 @@ func newApplyCommand() *cobra.Command {
 					}
 					return nil
 				}
-				return errors.Errorf("unsupported resource %q: %s", r.Type(), file)
+				return errors.Errorf("unsupported model %q: %s", r.Type(), file)
 			})
 		}
 

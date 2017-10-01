@@ -11,7 +11,7 @@ import (
 // GetFunction reads a function from the backend. Returns nil if the function
 // does not exist.
 func GetFunction(ctx context.Context, kv backend.KV, name string) (*Function, error) {
-	key, err := resourcePath(ResourceTypeFunction, name)
+	key, err := modelPath(ModelTypeFunction, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get function key")
 	}
@@ -57,7 +57,7 @@ func GetPendingUpload(ctx context.Context, kv backend.KV, token string) (*Pendin
 // GetEnvironment returns an environment. Returns nil if the environment does
 // not exist.
 func GetEnvironment(ctx context.Context, kv backend.KV, name string) (*Environment, error) {
-	key, err := resourcePath(ResourceTypeEnvironment, name)
+	key, err := modelPath(ModelTypeEnvironment, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get environment key")
 	}
@@ -80,7 +80,7 @@ func GetEnvironment(ctx context.Context, kv backend.KV, name string) (*Environme
 // GetDeployment returns a deployment. Returns nil if the deployment does not
 // exist.
 func GetDeployment(ctx context.Context, kv backend.KV, name string) (*Deployment, error) {
-	key, err := resourcePath(ResourceTypeDeployment, name)
+	key, err := modelPath(ModelTypeDeployment, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not get deployment key")
 	}
