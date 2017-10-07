@@ -1,0 +1,5 @@
+{
+	"/models/environment/bar": "{\"Meta\":{\"Name\":\"bar\",\"Labels\":{\"bar\":\"bar\",\"baz\":\"baz\"}},\"Infrastructure\":\"\"}",
+	"/models/environment/baz": "{\"Meta\":{\"Name\":\"baz\",\"Labels\":null},\"Infrastructure\":\"\"}",
+	"/models/environment/foo": "{\"Meta\":{\"Name\":\"foo\",\"Labels\":{\"bar\":\"bar\",\"foo\":\"foo\"}},\"Infrastructure\":\"\"}"
+}

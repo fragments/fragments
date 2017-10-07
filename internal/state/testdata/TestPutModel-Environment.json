@@ -1,0 +1,3 @@
+{
+	"/models/environment/foo": "{\"Meta\":{\"Name\":\"foo\",\"Labels\":{\"bar\":\"bar\"}},\"Infrastructure\":\"aws\"}"
+}

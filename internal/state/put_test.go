@@ -2,16 +2,15 @@ package state
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPutModel(t *testing.T) {
 	ctx := context.Background()
-	kv := backend.NewMemoryKV()
 
 	tests := []struct {
 		TestName  string
@@ -33,7 +32,13 @@ func TestPutModel(t *testing.T) {
 			Input: &Function{
 				Meta: Meta{
 					Name: "foo",
+					Labels: map[string]string{
+						"foo": "foo",
+					},
 				},
+				Runtime:        "go",
+				Checksum:       "abc",
+				SourceFilename: "file.tar.gz",
 			},
 			ModelType: ModelTypeFunction,
 		},
@@ -42,14 +47,37 @@ func TestPutModel(t *testing.T) {
 			Input: &Environment{
 				Meta: Meta{
 					Name: "foo",
+					Labels: map[string]string{
+						"bar": "bar",
+					},
 				},
 				Infrastructure: InfrastructureTypeAWS,
 			},
+			ModelType: ModelTypeEnvironment,
+		},
+		{
+			TestName: "Deployment",
+			Input: &Deployment{
+				Meta: Meta{
+					Name: "foo",
+					Labels: map[string]string{
+						"bar": "bar",
+					},
+				},
+				EnvironmentLabels: map[string]string{
+					"foo": "foo",
+				},
+				FunctionLabels: map[string]string{
+					"bar": "bar",
+				},
+			},
+			ModelType: ModelTypeDeployment,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
+			kv := backend.NewTestKV()
 			err := PutModel(ctx, kv, test.ModelType, test.Input)
 			if test.Error {
 				require.Error(t, err)
@@ -57,29 +85,13 @@ func TestPutModel(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			switch test.ModelType {
-			case ModelTypeFunction:
-				actual, err := GetFunction(ctx, kv, test.Input.Name())
-				require.NoError(t, err)
-				assert.Equal(t, test.Input, actual)
-			case ModelTypeEnvironment:
-				actual, err := GetEnvironment(ctx, kv, test.Input.Name())
-				require.NoError(t, err)
-				assert.Equal(t, test.Input, actual)
-			}
+			kv.AssertSnapshot(t, fmt.Sprintf("TestPutModel-%s.json", test.TestName), *update)
 		})
 	}
 }
 
 func TestPutPendingUpload(t *testing.T) {
 	ctx := context.Background()
-	kv := backend.NewMemoryKV()
-
-	function := &Function{
-		Meta: Meta{
-			Name: "foo",
-		},
-	}
 
 	tests := []struct {
 		TestName string
@@ -96,7 +108,11 @@ func TestPutPendingUpload(t *testing.T) {
 			Token:    "token",
 			Input: &PendingUpload{
 				Filename: "",
-				Function: function,
+				Function: &Function{
+					Meta: Meta{
+						Name: "foo",
+					},
+				},
 			},
 			Error: true,
 		},
@@ -113,7 +129,11 @@ func TestPutPendingUpload(t *testing.T) {
 			TestName: "No token",
 			Input: &PendingUpload{
 				Filename: "foo.tar.gz",
-				Function: function,
+				Function: &Function{
+					Meta: Meta{
+						Name: "foo",
+					},
+				},
 			},
 			Error: true,
 		},
@@ -122,13 +142,18 @@ func TestPutPendingUpload(t *testing.T) {
 			Token:    "token",
 			Input: &PendingUpload{
 				Filename: "foo.tar.gz",
-				Function: function,
+				Function: &Function{
+					Meta: Meta{
+						Name: "foo",
+					},
+				},
 			},
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
+			kv := backend.NewTestKV()
 			err := PutPendingUpload(ctx, kv, test.Token, test.Input)
 			if test.Error {
 				require.Error(t, err)
@@ -136,9 +161,7 @@ func TestPutPendingUpload(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			actual, err := GetPendingUpload(ctx, kv, test.Token)
-			require.NoError(t, err)
-			assert.Equal(t, test.Input, actual)
+			kv.AssertSnapshot(t, fmt.Sprintf("TestPutPendingUpload-%s.json", test.TestName), *update)
 		})
 	}
 }

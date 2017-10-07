@@ -10,16 +10,19 @@ import (
 )
 
 func TestGetFunction(t *testing.T) {
-	existing := &Function{
-		Meta: Meta{
-			Name: "foo",
-		},
+	if *update {
+		kv := backend.NewTestKV()
+		ctx := context.Background()
+		err := PutModel(ctx, kv, ModelTypeFunction, &Function{
+			Meta: Meta{
+				Name: "foo",
+			},
+			Runtime:  "go",
+			Checksum: "abc",
+		})
+		require.NoError(t, err)
+		kv.SaveSnapshot(t, "TestGetFunction.json")
 	}
-
-	ctx := context.Background()
-	kv := backend.NewMemoryKV()
-	err := PutModel(ctx, kv, ModelTypeFunction, existing)
-	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -41,42 +44,49 @@ func TestGetFunction(t *testing.T) {
 		},
 		{
 			TestName: "Found",
-			Name:     existing.Name(),
-			Expected: existing,
-			Error:    false,
+			Name:     "foo",
+			Expected: &Function{
+				Meta: Meta{
+					Name: "foo",
+				},
+				Runtime:  "go",
+				Checksum: "abc",
+			},
+			Error: false,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
+			ctx := context.Background()
+			kv := backend.NewTestKV("TestGetFunction.json")
 			actual, err := GetFunction(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)
 				return
 			}
 			require.NoError(t, err)
-			assert.Equal(t, test.Expected, actual)
+
+			assert.EqualValues(t, test.Expected, actual)
 		})
 	}
 }
 
 func TestGetPendingUpload(t *testing.T) {
-	function := &Function{
-		Meta: Meta{
-			Name: "foo",
-		},
-		Runtime: "go",
+	if *update {
+		kv := backend.NewTestKV()
+		ctx := context.Background()
+		err := PutPendingUpload(ctx, kv, "token", &PendingUpload{
+			Filename: "foo.tar.gz",
+			Function: &Function{
+				Meta: Meta{
+					Name: "foo",
+				},
+			},
+		})
+		require.NoError(t, err)
+		kv.SaveSnapshot(t, "TestGetPendingUpload.json")
 	}
-	existing := &PendingUpload{
-		Filename:         "foo.tar.gz",
-		PreviousFilename: "bar.tar.gz",
-		Function:         function,
-	}
-
-	ctx := context.Background()
-	kv := backend.NewMemoryKV()
-	err := PutPendingUpload(ctx, kv, "token", existing)
-	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -99,36 +109,47 @@ func TestGetPendingUpload(t *testing.T) {
 		{
 			TestName: "Found",
 			Token:    "token",
-			Expected: existing,
-			Error:    false,
+			Expected: &PendingUpload{
+				Filename: "foo.tar.gz",
+				Function: &Function{
+					Meta: Meta{
+						Name: "foo",
+					},
+				},
+			},
+			Error: false,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
+			ctx := context.Background()
+			kv := backend.NewTestKV("TestGetPendingUpload.json")
 			actual, err := GetPendingUpload(ctx, kv, test.Token)
 			if test.Error {
 				require.Error(t, err)
 				return
 			}
 			require.NoError(t, err)
-			assert.Equal(t, test.Expected, actual)
+
+			assert.EqualValues(t, test.Expected, actual)
 		})
 	}
 }
 
 func TestGetEnvironment(t *testing.T) {
-	existing := &Environment{
-		Meta: Meta{
-			Name: "foo",
-		},
-		Infrastructure: InfrastructureTypeAWS,
+	if *update {
+		kv := backend.NewTestKV()
+		ctx := context.Background()
+		err := PutModel(ctx, kv, ModelTypeEnvironment, &Environment{
+			Meta: Meta{
+				Name: "foo",
+			},
+			Infrastructure: InfrastructureTypeAWS,
+		})
+		require.NoError(t, err)
+		kv.SaveSnapshot(t, "TestGetEnvironment.json")
 	}
-
-	ctx := context.Background()
-	kv := backend.NewMemoryKV()
-	err := PutModel(ctx, kv, ModelTypeEnvironment, existing)
-	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -150,36 +171,51 @@ func TestGetEnvironment(t *testing.T) {
 		},
 		{
 			TestName: "Found",
-			Name:     existing.Name(),
-			Expected: existing,
-			Error:    false,
+			Name:     "foo",
+			Expected: &Environment{
+				Meta: Meta{
+					Name: "foo",
+				},
+				Infrastructure: InfrastructureTypeAWS,
+			},
+			Error: false,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
+			ctx := context.Background()
+			kv := backend.NewTestKV("TestGetEnvironment.json")
 			actual, err := GetEnvironment(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)
 				return
 			}
 			require.NoError(t, err)
+
 			assert.Equal(t, test.Expected, actual)
 		})
 	}
 }
 
 func TestGetDeployment(t *testing.T) {
-	existing := &Deployment{
-		Meta: Meta{
-			Name: "foo",
-		},
+	if *update {
+		kv := backend.NewTestKV()
+		ctx := context.Background()
+		err := PutModel(ctx, kv, ModelTypeDeployment, &Deployment{
+			Meta: Meta{
+				Name: "foo",
+			},
+			EnvironmentLabels: map[string]string{
+				"foo": "foo",
+			},
+			FunctionLabels: map[string]string{
+				"bar": "bar",
+			},
+		})
+		require.NoError(t, err)
+		kv.SaveSnapshot(t, "TestGetDeployment.json")
 	}
-
-	ctx := context.Background()
-	kv := backend.NewMemoryKV()
-	err := PutModel(ctx, kv, ModelTypeDeployment, existing)
-	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -201,20 +237,33 @@ func TestGetDeployment(t *testing.T) {
 		},
 		{
 			TestName: "Found",
-			Name:     existing.Name(),
-			Expected: existing,
-			Error:    false,
+			Name:     "foo",
+			Expected: &Deployment{
+				Meta: Meta{
+					Name: "foo",
+				},
+				EnvironmentLabels: map[string]string{
+					"foo": "foo",
+				},
+				FunctionLabels: map[string]string{
+					"bar": "bar",
+				},
+			},
+			Error: false,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
+			ctx := context.Background()
+			kv := backend.NewTestKV("TestGetDeployment.json")
 			actual, err := GetDeployment(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)
 				return
 			}
 			require.NoError(t, err)
+
 			assert.Equal(t, test.Expected, actual)
 		})
 	}

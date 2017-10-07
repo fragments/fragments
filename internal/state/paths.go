@@ -15,6 +15,9 @@ func modelPath(modelType ModelType, name string) (string, error) {
 	if name == "" {
 		return "", errors.New("name is required")
 	}
+	if string(modelType) == "" {
+		return "", errors.New("model type is required")
+	}
 	return fmt.Sprintf("%s/%s", modelListPath(modelType), name), nil
 }
 

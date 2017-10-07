@@ -2,29 +2,29 @@ package state
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDeletePendingUpload(t *testing.T) {
-	ctx := context.Background()
-	kv := backend.NewMemoryKV()
-
-	pendingUpload := &PendingUpload{
-		Filename: "foo.tar.gz",
-		Function: &Function{
-			Meta: Meta{
-				Name: "foo",
+	if *update {
+		kv := backend.NewTestKV()
+		ctx := context.Background()
+		err := PutPendingUpload(ctx, kv, "token", &PendingUpload{
+			Filename: "filename.tar.gz",
+			Function: &Function{
+				Meta: Meta{Name: "foo"},
 			},
-		},
+		})
+		require.NoError(t, err)
+		kv.SaveSnapshot(t, "TestDeletePendingUpload.json")
 	}
 
 	tests := []struct {
 		TestName string
-		Existing *PendingUpload
 		Token    string
 		Error    bool
 	}{
@@ -39,17 +39,14 @@ func TestDeletePendingUpload(t *testing.T) {
 		},
 		{
 			TestName: "Deleted",
-			Existing: pendingUpload,
-			Token:    "foo",
+			Token:    "token",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
-			if test.Existing != nil {
-				err := PutPendingUpload(ctx, kv, test.Token, test.Existing)
-				require.NoError(t, err)
-			}
+			kv := backend.NewTestKV("TestDeletePendingUpload.json")
+			ctx := context.Background()
 			err := DeletePendingUpload(ctx, kv, test.Token)
 			if test.Error {
 				require.Error(t, err)
@@ -57,9 +54,7 @@ func TestDeletePendingUpload(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			actual, err := GetPendingUpload(ctx, kv, test.Token)
-			require.NoError(t, err)
-			assert.Nil(t, actual)
+			kv.AssertSnapshot(t, fmt.Sprintf("TestDeletePendingUpload-%s.json", test.TestName), *update)
 		})
 	}
 }

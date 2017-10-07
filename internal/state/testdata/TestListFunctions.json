@@ -1,0 +1,5 @@
+{
+	"/models/function/bar": "{\"Meta\":{\"Name\":\"bar\",\"Labels\":{\"bar\":\"bar\",\"baz\":\"baz\"}},\"Runtime\":\"\",\"Checksum\":\"\",\"SourceFilename\":\"\",\"AWS\":null}",
+	"/models/function/baz": "{\"Meta\":{\"Name\":\"baz\",\"Labels\":null},\"Runtime\":\"\",\"Checksum\":\"\",\"SourceFilename\":\"\",\"AWS\":null}",
+	"/models/function/foo": "{\"Meta\":{\"Name\":\"foo\",\"Labels\":{\"bar\":\"bar\",\"foo\":\"foo\"}},\"Runtime\":\"\",\"Checksum\":\"\",\"SourceFilename\":\"\",\"AWS\":null}"
+}

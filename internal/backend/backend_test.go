@@ -122,14 +122,14 @@ func getTestTargets(t *testing.T) []testTarget {
 			},
 		},
 		{
-			TargetName: "Memory",
+			TargetName: "Test",
 			TestClient: func(t *testing.T) interface{} {
 				// return the map that's used for storing data
 				return map[string]string{}
 			},
 			New: func(data interface{}) KV {
 				d := data.(map[string]string)
-				return &MemoryKV{Data: d}
+				return &TestKV{Data: d}
 			},
 			AddTestValue: func(t *testing.T, data interface{}, key, value string) {
 				d := data.(map[string]string)

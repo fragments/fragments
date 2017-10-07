@@ -10,54 +10,53 @@ import (
 )
 
 func TestListDeployments(t *testing.T) {
-	foo := &Deployment{
-		Meta: Meta{
-			Name: "foo",
-			Labels: map[string]string{
-				"foo": "foo",
-				"bar": "bar",
+	if *update {
+		kv := backend.NewTestKV()
+		ctx := context.Background()
+		err := PutModel(ctx, kv, ModelTypeDeployment, &Deployment{
+			Meta: Meta{
+				Name: "foo",
+				Labels: map[string]string{
+					"foo": "foo",
+					"bar": "bar",
+				},
 			},
-		},
-	}
-
-	bar := &Deployment{
-		Meta: Meta{
-			Name: "bar",
-			Labels: map[string]string{
-				"bar": "bar",
-				"baz": "baz",
+		})
+		require.NoError(t, err)
+		err = PutModel(ctx, kv, ModelTypeDeployment, &Deployment{
+			Meta: Meta{
+				Name: "bar",
+				Labels: map[string]string{
+					"bar": "bar",
+					"baz": "baz",
+				},
 			},
-		},
-	}
-
-	baz := &Deployment{
-		Meta: Meta{
-			Name: "baz",
-		},
+		})
+		require.NoError(t, err)
+		err = PutModel(ctx, kv, ModelTypeDeployment, &Deployment{
+			Meta: Meta{
+				Name: "baz",
+			},
+		})
+		require.NoError(t, err)
+		kv.SaveSnapshot(t, "TestListDeployments.json")
 	}
 
 	ctx := context.Background()
-	kv := backend.NewMemoryKV()
-	err := PutModel(ctx, kv, ModelTypeDeployment, foo)
-	require.NoError(t, err)
-	err = PutModel(ctx, kv, ModelTypeDeployment, bar)
-	require.NoError(t, err)
-	err = PutModel(ctx, kv, ModelTypeDeployment, baz)
-	require.NoError(t, err)
+	kv := backend.NewTestKV("TestListDeployments.json")
 
 	tests := []struct {
 		TestName string
 		Matchers []matcher
-		Expected []*Deployment
+		Results  int
 		Error    bool
 	}{
 		{
 			TestName: "No matchers",
-			Expected: []*Deployment{foo, bar, baz},
+			Results:  3,
 		},
 		{
 			TestName: "Label matcher (match all)",
-			Expected: []*Deployment{foo, bar},
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -65,10 +64,10 @@ func TestListDeployments(t *testing.T) {
 					},
 				},
 			},
+			Results: 2,
 		},
 		{
 			TestName: "Label matcher (match one)",
-			Expected: []*Deployment{foo},
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -76,10 +75,10 @@ func TestListDeployments(t *testing.T) {
 					},
 				},
 			},
+			Results: 1,
 		},
 		{
 			TestName: "Label matcher (match none)",
-			Expected: []*Deployment{},
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -87,6 +86,7 @@ func TestListDeployments(t *testing.T) {
 					},
 				},
 			},
+			Results: 0,
 		},
 	}
 
@@ -98,60 +98,59 @@ func TestListDeployments(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			assert.Len(t, actual, len(test.Expected))
+			assert.Len(t, actual, test.Results)
 		})
 	}
 }
 
 func TestListEnvironments(t *testing.T) {
-	foo := &Environment{
-		Meta: Meta{
-			Name: "foo",
-			Labels: map[string]string{
-				"foo": "foo",
-				"bar": "bar",
+	if *update {
+		kv := backend.NewTestKV()
+		ctx := context.Background()
+		err := PutModel(ctx, kv, ModelTypeEnvironment, &Environment{
+			Meta: Meta{
+				Name: "foo",
+				Labels: map[string]string{
+					"foo": "foo",
+					"bar": "bar",
+				},
 			},
-		},
-	}
-
-	bar := &Environment{
-		Meta: Meta{
-			Name: "bar",
-			Labels: map[string]string{
-				"bar": "bar",
-				"baz": "baz",
+		})
+		require.NoError(t, err)
+		err = PutModel(ctx, kv, ModelTypeEnvironment, &Environment{
+			Meta: Meta{
+				Name: "bar",
+				Labels: map[string]string{
+					"bar": "bar",
+					"baz": "baz",
+				},
 			},
-		},
-	}
-
-	baz := &Environment{
-		Meta: Meta{
-			Name: "baz",
-		},
+		})
+		require.NoError(t, err)
+		err = PutModel(ctx, kv, ModelTypeEnvironment, &Environment{
+			Meta: Meta{
+				Name: "baz",
+			},
+		})
+		require.NoError(t, err)
+		kv.SaveSnapshot(t, "TestListEnvironments.json")
 	}
 
 	ctx := context.Background()
-	kv := backend.NewMemoryKV()
-	err := PutModel(ctx, kv, ModelTypeEnvironment, foo)
-	require.NoError(t, err)
-	err = PutModel(ctx, kv, ModelTypeEnvironment, bar)
-	require.NoError(t, err)
-	err = PutModel(ctx, kv, ModelTypeEnvironment, baz)
-	require.NoError(t, err)
+	kv := backend.NewTestKV("TestListEnvironments.json")
 
 	tests := []struct {
 		TestName string
 		Matchers []matcher
-		Expected []*Environment
+		Results  int
 		Error    bool
 	}{
 		{
 			TestName: "No matchers",
-			Expected: []*Environment{foo, bar, baz},
+			Results:  3,
 		},
 		{
 			TestName: "Label matcher (match all)",
-			Expected: []*Environment{foo, bar},
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -159,10 +158,10 @@ func TestListEnvironments(t *testing.T) {
 					},
 				},
 			},
+			Results: 2,
 		},
 		{
 			TestName: "Label matcher (match one)",
-			Expected: []*Environment{foo},
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -170,10 +169,10 @@ func TestListEnvironments(t *testing.T) {
 					},
 				},
 			},
+			Results: 1,
 		},
 		{
 			TestName: "Label matcher (match none)",
-			Expected: []*Environment{},
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -181,6 +180,7 @@ func TestListEnvironments(t *testing.T) {
 					},
 				},
 			},
+			Results: 0,
 		},
 	}
 
@@ -192,60 +192,59 @@ func TestListEnvironments(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			assert.Len(t, actual, len(test.Expected))
+			assert.Len(t, actual, test.Results)
 		})
 	}
 }
 
 func TestListFunctions(t *testing.T) {
-	foo := &Function{
-		Meta: Meta{
-			Name: "foo",
-			Labels: map[string]string{
-				"foo": "foo",
-				"bar": "bar",
+	if *update {
+		kv := backend.NewTestKV()
+		ctx := context.Background()
+		err := PutModel(ctx, kv, ModelTypeFunction, &Function{
+			Meta: Meta{
+				Name: "foo",
+				Labels: map[string]string{
+					"foo": "foo",
+					"bar": "bar",
+				},
 			},
-		},
-	}
-
-	bar := &Function{
-		Meta: Meta{
-			Name: "bar",
-			Labels: map[string]string{
-				"bar": "bar",
-				"baz": "baz",
+		})
+		require.NoError(t, err)
+		err = PutModel(ctx, kv, ModelTypeFunction, &Function{
+			Meta: Meta{
+				Name: "bar",
+				Labels: map[string]string{
+					"bar": "bar",
+					"baz": "baz",
+				},
 			},
-		},
-	}
-
-	baz := &Function{
-		Meta: Meta{
-			Name: "baz",
-		},
+		})
+		require.NoError(t, err)
+		err = PutModel(ctx, kv, ModelTypeFunction, &Function{
+			Meta: Meta{
+				Name: "baz",
+			},
+		})
+		require.NoError(t, err)
+		kv.SaveSnapshot(t, "TestListFunctions.json")
 	}
 
 	ctx := context.Background()
-	kv := backend.NewMemoryKV()
-	err := PutModel(ctx, kv, ModelTypeFunction, foo)
-	require.NoError(t, err)
-	err = PutModel(ctx, kv, ModelTypeFunction, bar)
-	require.NoError(t, err)
-	err = PutModel(ctx, kv, ModelTypeFunction, baz)
-	require.NoError(t, err)
+	kv := backend.NewTestKV("TestListFunctions.json")
 
 	tests := []struct {
 		TestName string
 		Matchers []matcher
-		Expected []*Function
+		Results  int
 		Error    bool
 	}{
 		{
 			TestName: "No matchers",
-			Expected: []*Function{foo, bar, baz},
+			Results:  3,
 		},
 		{
 			TestName: "Label matcher (match all)",
-			Expected: []*Function{foo, bar},
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -253,10 +252,10 @@ func TestListFunctions(t *testing.T) {
 					},
 				},
 			},
+			Results: 2,
 		},
 		{
 			TestName: "Label matcher (match one)",
-			Expected: []*Function{foo},
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -264,10 +263,10 @@ func TestListFunctions(t *testing.T) {
 					},
 				},
 			},
+			Results: 1,
 		},
 		{
 			TestName: "Label matcher (match none)",
-			Expected: []*Function{},
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -275,6 +274,7 @@ func TestListFunctions(t *testing.T) {
 					},
 				},
 			},
+			Results: 0,
 		},
 	}
 
@@ -286,7 +286,7 @@ func TestListFunctions(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			assert.Len(t, actual, len(test.Expected))
+			assert.Len(t, actual, test.Results)
 		})
 	}
 }
