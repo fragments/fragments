@@ -120,6 +120,8 @@ type EnvironmentInput struct {
 	// Password is the password used to authenticate to the infrastructure
 	// provider.
 	Password string
+	// AWS contains AWS environment specific information
+	AWS *state.InfrastructureAWS
 }
 
 // CreateEnvironment creates a new target deployment environment. Returns an
@@ -152,6 +154,7 @@ func (s *Server) CreateEnvironment(ctx context.Context, input *EnvironmentInput)
 			Labels: input.Labels,
 		},
 		Infrastructure: input.Infrastructure,
+		AWS:            input.AWS,
 	}
 
 	if err := state.PutModel(ctx, s.StateStore, state.ModelTypeEnvironment, env); err != nil {

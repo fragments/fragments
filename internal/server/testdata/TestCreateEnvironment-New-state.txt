@@ -5,12 +5,14 @@
                                       "foo": "bar"
                                   }
                               },
-                              "Infrastructure": "aws"
+                              "Infrastructure": "aws",
+                              "AWS": null
                           }
 /models/environment/foo : {
                               "Meta": {
                                   "Name": "foo",
                                   "Labels": null
                               },
-                              "Infrastructure": "aws"
+                              "Infrastructure": "aws",
+                              "AWS": null
                           }

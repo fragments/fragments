@@ -34,6 +34,7 @@ func newEnvironmentCreateCommand() *cobra.Command {
 	username := flags.StringP("username", "u", "", "Username for authenticating with infrastructure provider")
 	password := flags.StringP("password", "p", "", "Password for authenticating with infrastructure provider")
 	labels := flags.StringSliceP("label", "l", []string{}, "Label(s) to put on environment")
+	awsRegion := flags.String("aws.region", "", "AWS region")
 
 	cmd.PreRunE = func(cmd *cobra.Command, args []string) error {
 		if *name == "" {
@@ -71,6 +72,9 @@ func newEnvironmentCreateCommand() *cobra.Command {
 			Infrastructure: infra,
 			Username:       *username,
 			Password:       *password,
+			AWS: &state.InfrastructureAWS{
+				Region: *awsRegion,
+			},
 		}
 
 		s := server.New(etcd, vault, nil)

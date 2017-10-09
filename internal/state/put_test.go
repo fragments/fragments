@@ -20,11 +20,11 @@ func TestPutModel(t *testing.T) {
 		Error     bool
 	}{
 		{
-			TestName: "No model",
+			TestName: "NoModel",
 			Error:    true,
 		},
 		{
-			TestName: "No name",
+			TestName: "NoName",
 			Input:    &Function{},
 			Error:    true,
 		},
@@ -44,7 +44,7 @@ func TestPutModel(t *testing.T) {
 			ModelType: ModelTypeFunction,
 		},
 		{
-			TestName: "Environment",
+			TestName: "EnvironmentAWS",
 			Input: &Environment{
 				Meta: Meta{
 					Name: "foo",
@@ -53,6 +53,9 @@ func TestPutModel(t *testing.T) {
 					},
 				},
 				Infrastructure: InfrastructureTypeAWS,
+				AWS: &InfrastructureAWS{
+					Region: "us-east-1",
+				},
 			},
 			ModelType: ModelTypeEnvironment,
 		},

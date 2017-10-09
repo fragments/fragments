@@ -86,10 +86,17 @@ type Environment struct {
 	Meta Meta
 	// Infrastructure defines what type the infrastructure type is for the environment.
 	Infrastructure InfrastructureType
+	// AWS specifies AWS specific deployment information
+	AWS *InfrastructureAWS
 }
 
 // Name returns a unique name to identify the environment.
 func (e *Environment) Name() string { return e.Meta.Name }
+
+// InfrastructureAWS contains information for an AWS deployment
+type InfrastructureAWS struct {
+	Region string
+}
 
 // Deployment represents a connection between functions to environments.
 type Deployment struct {
