@@ -8,15 +8,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-// WalkOptions configure walking directories
-type WalkOptions struct {
-	// Directory patterns to ignore (https://golang.org/pkg/path/filepath/#Match)
-	Ignore []string
-}
-
 // Walk walks a target directory looking for models. Returns a list of
 // potential model definitions.
-func Walk(dir string, opts *WalkOptions) ([]string, error) {
+// Directories can be ignored by supplying patterns to ignoreDirs. See
+// https://golang.org/pkg/path/filepath/#Match for details.
+func Walk(dir string, ignoreDirs []string) ([]string, error) {
 	out := []string{}
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -36,7 +32,7 @@ func Walk(dir string, opts *WalkOptions) ([]string, error) {
 				return filepath.SkipDir
 			}
 
-			for _, pattern := range opts.Ignore {
+			for _, pattern := range ignoreDirs {
 				match, err := filepath.Match(pattern, dirname)
 				if err != nil {
 					return errors.Wrap(err, pattern)

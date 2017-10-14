@@ -3,20 +3,15 @@ package main
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"sort"
 	"strings"
-	"syscall"
 
 	"github.com/fragments/fragments/internal/client"
-	"github.com/fragments/fragments/internal/filestore"
 	"github.com/fragments/fragments/internal/server"
 	"github.com/fragments/fragments/internal/state"
 	"github.com/golang/sync/errgroup"
-	homedir "github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -49,114 +44,95 @@ func newApplyCommand() *cobra.Command {
 	}
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
-		walkOptions := &client.WalkOptions{
-			Ignore: *ignore,
-		}
+		models, err := getModels(args, *ignore)
+		checkErr(err)
 
-		// Loop through all targets to resolve models
-		modelPaths := []string{}
-		for _, target := range args {
-			paths, err := client.Walk(target, walkOptions)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "%s: %s\n", target, err)
-				os.Exit(1)
-			}
-			modelPaths = append(modelPaths, paths...)
-		}
+		excludeSource := functionDirs(models)
+		excludeSource = append(excludeSource, *ignore...)
 
-		models := []client.Model{}
-		for _, path := range modelPaths {
-			res, err := client.Load(path)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "could not load model: %s: %s\n", err, path)
-				os.Exit(1)
-			}
-			// A nil model is returned in case a model was not found in file
-			if res != nil {
-				models = append(models, res...)
-			}
-		}
-
-		if err := client.CheckDuplicates(models); err != nil {
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "%s\n", err)
-				os.Exit(1)
-			}
-		}
-
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		// Cancel context on signal
-		go func() {
-			sig := make(chan os.Signal, 1)
-			signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-			<-sig
-			cancel()
-		}()
-
-		excludeSource := *ignore
-		for _, r := range models {
-			if r.Type() == client.ModelTypeFunction {
-				excludeSource = append(excludeSource, filepath.Dir(r.File()))
-			}
-		}
-
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
-
-		uploads := filepath.Join(home, ".fragments", "uploads")
-		source := filepath.Join(home, ".fragments", "source")
-		sourceStore, err := filestore.NewLocal(uploads, source)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
+		fileStore, err := getFilestore()
+		checkErr(errors.Wrap(err, "could not set up local filestore"))
 
 		etcd, err := getETCD(flags)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
+		checkErr(errors.Wrap(err, "could not set up etcd"))
 
-		s := server.New(etcd, nil, sourceStore)
-		g, ctx := errgroup.WithContext(ctx)
-		for _, r := range models {
-			r := r
-			g.Go(func() error {
-				meta := r.Meta()
-				file := r.File()
-				if function, ok := r.(client.Function); ok {
-					spec := function.Function()
-					if err := applyFunction(ctx, s, meta, file, spec, excludeSource); err != nil {
-						return errors.Wrap(err, "could not apply function")
-					}
-					return nil
-				}
-				if deployment, ok := r.(client.Deployment); ok {
-					if err := applyDeployment(ctx, s, meta, deployment.Deployment()); err != nil {
-						return errors.Wrap(err, "could not apply deployment")
-					}
-					return nil
-				}
-				return errors.Errorf("unsupported model %q: %s", r.Type(), file)
-			})
-		}
+		s := server.New(etcd, nil, fileStore)
 
-		if err := g.Wait(); err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
+		ctx := contextFromSignal()
+		err = apply(ctx, s, models, excludeSource)
+		checkErr(err)
 
-		if err := etcd.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "could not close etcd: %s\n", err)
-		}
+		err = etcd.Close()
+		checkErr(err)
 	}
 
 	return cmd
+}
+
+// functionDirs returns directories containing a function model.
+func functionDirs(models []client.Model) []string {
+	out := []string{}
+	for _, r := range models {
+		if r.Type() == client.ModelTypeFunction {
+			out = append(out, filepath.Dir(r.File()))
+		}
+	}
+	return out
+}
+
+// apply applies all models on the server.
+func apply(ctx context.Context, server *server.Server, models []client.Model, excludeSource []string) error {
+	g, ctx := errgroup.WithContext(ctx)
+	for _, r := range models {
+		r := r
+		g.Go(func() error {
+			meta := r.Meta()
+			file := r.File()
+			if function, ok := r.(client.Function); ok {
+				spec := function.Function()
+				if err := applyFunction(ctx, server, meta, file, spec, excludeSource); err != nil {
+					return errors.Wrap(err, "could not apply function")
+				}
+				return nil
+			}
+			if deployment, ok := r.(client.Deployment); ok {
+				if err := applyDeployment(ctx, server, meta, deployment.Deployment()); err != nil {
+					return errors.Wrap(err, "could not apply deployment")
+				}
+				return nil
+			}
+			return errors.Errorf("unsupported model %q: %s", r.Type(), file)
+		})
+	}
+
+	return g.Wait()
+}
+
+// getModels walks the target directories and returns discovered models.
+func getModels(targets, ignore []string) ([]client.Model, error) {
+	// Loop through all targets to resolve models
+	modelPaths := []string{}
+	for _, target := range targets {
+		paths, err := client.Walk(target, ignore)
+		checkErr(errors.Wrap(err, target))
+		modelPaths = append(modelPaths, paths...)
+	}
+
+	models := []client.Model{}
+	for _, path := range modelPaths {
+		res, err := client.Load(path)
+		checkErr(errors.Wrapf(err, "could not load model: %s", path))
+		// A nil model is returned in case a model was not found in file
+		if res != nil {
+			models = append(models, res...)
+		}
+	}
+
+	if err := client.CheckDuplicates(models); err != nil {
+		return nil, err
+	}
+
+	return models, nil
 }
 
 func applyFunction(ctx context.Context, srv *server.Server, meta *client.Meta, file string, spec *client.FunctionSpec, ignore []string) error {

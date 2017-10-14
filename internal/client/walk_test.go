@@ -56,7 +56,7 @@ func TestWalk(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
-			actual, err := Walk(test.Dir, &WalkOptions{Ignore: test.Ignore})
+			actual, err := Walk(test.Dir, test.Ignore)
 			if test.Error {
 				require.Error(t, err)
 				return

@@ -1,9 +1,6 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -57,28 +54,16 @@ func newEnvironmentCreateCommand() *cobra.Command {
 
 	cmd.Run = func(cmd *cobra.Command, args []string) {
 		infra, err := parseInfrastructure(*infraName)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
+		checkErr(err)
 
 		l, err := extractLabels(*labels)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: format must be key=value\n", err)
-			os.Exit(1)
-		}
+		checkErr(errors.Wrap(err, "format must be key=value"))
 
 		etcd, err := getETCD(flags)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
+		checkErr(errors.Wrap(err, "could not set up etcd"))
 
 		vault, err := getVault(flags)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
+		checkErr(errors.Wrap(err, "could not set up vault"))
 
 		input := &server.EnvironmentInput{
 			Name:           *name,
@@ -89,15 +74,14 @@ func newEnvironmentCreateCommand() *cobra.Command {
 		}
 
 		s := server.New(etcd, vault, nil)
-		ctx := context.TODO()
-		if err := s.CreateEnvironment(ctx, input); err != nil {
-			fmt.Fprintf(os.Stderr, "%s\n", err)
-			os.Exit(1)
-		}
 
-		if err := etcd.Close(); err != nil {
-			fmt.Fprintf(os.Stderr, "could not close etcd: %s\n", err)
-		}
+		ctx := contextFromSignal()
+
+		err = s.CreateEnvironment(ctx, input)
+		checkErr(errors.Wrap(err, "create environment failed"))
+
+		err = etcd.Close()
+		checkErr(err)
 	}
 
 	return cmd
