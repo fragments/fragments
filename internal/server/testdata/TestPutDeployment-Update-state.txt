@@ -1,0 +1,14 @@
+/models/deployment/foo : {
+                             "Meta": {
+                                 "Name": "foo",
+                                 "Labels": {
+                                     "foo": "bar"
+                                 }
+                             },
+                             "EnvironmentLabels": {
+                                 "foo": "foo"
+                             },
+                             "FunctionLabels": {
+                                 "bar": "bar"
+                             }
+                         }

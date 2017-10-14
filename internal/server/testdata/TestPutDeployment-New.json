@@ -1,4 +1,0 @@
-{
-	"/models/deployment/bar": "{\"Meta\":{\"Name\":\"bar\",\"Labels\":null},\"EnvironmentLabels\":{\"foo\":\"foo\"},\"FunctionLabels\":{\"bar\":\"bar\"}}",
-	"/models/deployment/foo": "{\"Meta\":{\"Name\":\"foo\",\"Labels\":null},\"EnvironmentLabels\":{},\"FunctionLabels\":{}}"
-}

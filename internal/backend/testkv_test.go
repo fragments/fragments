@@ -1,7 +1,8 @@
 package backend
 
 import (
-	"os"
+	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,7 @@ func TestNewTestKV(t *testing.T) {
 		{
 			TestName: "Single snapshot",
 			Snapshots: []string{
-				"test_foobar.json",
+				"testdata/test_foobar.json",
 			},
 			Assert: func(data map[string]string) {
 				assert.Len(t, data, 2)
@@ -34,8 +35,8 @@ func TestNewTestKV(t *testing.T) {
 		{
 			TestName: "Multiple snapshots",
 			Snapshots: []string{
-				"test_foobar.json",
-				"test_baz.json",
+				"testdata/test_foobar.json",
+				"testdata/test_baz.json",
 			},
 			Assert: func(data map[string]string) {
 				assert.Len(t, data, 3)
@@ -47,9 +48,9 @@ func TestNewTestKV(t *testing.T) {
 		{
 			TestName: "Overwrite key",
 			Snapshots: []string{
-				"test_foobar.json",
-				"test_baz.json",
-				"test_foobarbaz.json",
+				"testdata/test_foobar.json",
+				"testdata/test_baz.json",
+				"testdata/test_foobarbaz.json",
 			},
 			Assert: func(data map[string]string) {
 				assert.Len(t, data, 3)
@@ -74,26 +75,11 @@ func TestNewTestKVInvalid(t *testing.T) {
 	})
 }
 
-func TestAssertSnapshot(t *testing.T) {
-	mockT := new(testing.T)
-	kv := NewTestKV()
-
-	// Initially this should fail since the snapshot cannot be found.
-	kv.AssertSnapshot(mockT, "snapshot-test", false)
-	assert.True(t, mockT.Failed())
-
-	// Update snapshot, should not fail
-	mockT = new(testing.T)
-	kv.AssertSnapshot(mockT, "snapshot-test", true)
-	assert.False(t, mockT.Failed())
-
-	// Snapshot should match now
-	mockT = new(testing.T)
-	kv.AssertSnapshot(mockT, "snapshot-test", false)
-	assert.False(t, mockT.Failed())
-
-	// Clean up
-	filename := kv.snapshotFilename("snapshot-test")
-	err := os.Remove(filename)
+func TestTestKVString(t *testing.T) {
+	kv := NewTestKV("testdata/testkv-string.json")
+	actual := kv.TestString()
+	expected, err := ioutil.ReadFile("testdata/testkv-string.golden")
 	require.NoError(t, err)
+	fmt.Println(actual)
+	assert.Equal(t, string(expected), actual)
 }

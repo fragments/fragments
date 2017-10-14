@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
+	"github.com/fragments/fragments/pkg/snapshot"
 	"github.com/stretchr/testify/require"
 )
 
@@ -85,7 +86,7 @@ func TestPutModel(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			kv.AssertSnapshot(t, fmt.Sprintf("TestPutModel-%s.json", test.TestName), *update)
+			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestPutModel-%s.txt", test.TestName), *update)
 		})
 	}
 }
@@ -100,11 +101,11 @@ func TestPutPendingUpload(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No pending upload",
+			TestName: "NoPendingUpload",
 			Error:    true,
 		},
 		{
-			TestName: "No filename",
+			TestName: "NoFilename",
 			Token:    "token",
 			Input: &PendingUpload{
 				Filename: "",
@@ -117,7 +118,7 @@ func TestPutPendingUpload(t *testing.T) {
 			Error: true,
 		},
 		{
-			TestName: "No function",
+			TestName: "NoFunction",
 			Token:    "token",
 			Input: &PendingUpload{
 				Filename: "foo.tar.gz",
@@ -126,7 +127,7 @@ func TestPutPendingUpload(t *testing.T) {
 			Error: true,
 		},
 		{
-			TestName: "No token",
+			TestName: "NoToken",
 			Input: &PendingUpload{
 				Filename: "foo.tar.gz",
 				Function: &Function{
@@ -161,7 +162,7 @@ func TestPutPendingUpload(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			kv.AssertSnapshot(t, fmt.Sprintf("TestPutPendingUpload-%s.json", test.TestName), *update)
+			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestPutPendingUpload-%s.txt", test.TestName), *update)
 		})
 	}
 }

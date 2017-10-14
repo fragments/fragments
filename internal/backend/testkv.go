@@ -1,32 +1,23 @@
 package backend
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
 
 	"github.com/pkg/errors"
-	"github.com/stretchr/testify/assert"
 )
 
 // TestKV keeps data in memory. It should only be used for unit tests.
 type TestKV struct {
 	Data map[string]string
 	mu   sync.Mutex
-}
-
-func (t *TestKV) snapshotFilename(key string) string {
-	if !strings.HasPrefix(key, "testdata/") {
-		key = "testdata/" + key
-	}
-	if !strings.HasSuffix(key, ".json") {
-		key += ".json"
-	}
-	return strings.Replace(key, " ", "_", -1)
 }
 
 // NewTestKV creates a new in key-value backend for tests.
@@ -41,14 +32,13 @@ func NewTestKV(snapshots ...string) *TestKV {
 	}
 
 	for _, snapshot := range snapshots {
-		filename := kv.snapshotFilename(snapshot)
-		data, err := ioutil.ReadFile(filename)
+		data, err := ioutil.ReadFile(snapshot)
 		if err != nil {
 			log.Panic(err)
 		}
 		temp := make(map[string]string)
 		if err := json.Unmarshal(data, &temp); err != nil {
-			log.Panic(errors.Wrapf(err, "could not unmarshal snapshot %s", filename))
+			log.Panic(errors.Wrapf(err, "could not unmarshal snapshot %s", snapshot))
 		}
 		for k, v := range temp {
 			kv.Data[k] = v
@@ -138,28 +128,49 @@ func (t *TestKV) Snapshot(test *testing.T) string {
 
 // SaveSnapshot saves the current state of the test backend to a file. The
 // state can be restored with LoadSnapshot. The data is stored as json.
-func (t *TestKV) SaveSnapshot(test *testing.T, key string) {
+func (t *TestKV) SaveSnapshot(test *testing.T, filename string) {
 	test.Helper()
 	data := t.Snapshot(test)
-	filename := t.snapshotFilename(key)
 	if err := ioutil.WriteFile(filename, []byte(data), 0644); err != nil {
 		test.Fatal(err)
 	}
 }
 
-// AssertSnapshot asserts that the state of the test store matches a previously
-// generated snapshot.
-func (t *TestKV) AssertSnapshot(test *testing.T, key string, update bool) {
-	test.Helper()
-	if update {
-		t.SaveSnapshot(test, key)
+// TestString creates a determenistic human readable test string from the state
+// of the TestKV store.
+func (t *TestKV) TestString() string {
+	var buf bytes.Buffer
+	t.mu.Lock()
+	keys := []string{}
+	klen := 0
+	for k := range t.Data {
+		if len(k) > klen {
+			klen = len(k)
+		}
+		keys = append(keys, k)
 	}
-	actual := t.Snapshot(test)
-	filename := t.snapshotFilename(key)
-	expected, err := ioutil.ReadFile(filename)
-	if err != nil {
-		test.Log(err)
-		test.Fail()
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := t.Data[k]
+		processed := false
+		buf.WriteString(k)
+		buf.WriteString(strings.Repeat(" ", klen-len(k)))
+		buf.WriteString(" : ")
+
+		// try json indenting the value
+		var pretty bytes.Buffer
+		err := json.Indent(&pretty, []byte(v), strings.Repeat(" ", klen+3), "    ")
+		if err == nil {
+			buf.Write(pretty.Bytes())
+			processed = true
+		}
+
+		if !processed {
+			buf.WriteString(v)
+		}
+
+		buf.WriteString("\n")
 	}
-	assert.Equal(test, string(expected), actual)
+	t.mu.Unlock()
+	return buf.String()
 }

@@ -1,3 +1,0 @@
-{
-	"/models/function/foo": "{\"Meta\":{\"Name\":\"foo\",\"Labels\":null},\"Runtime\":\"\",\"Checksum\":\"foo\",\"SourceFilename\":\"\",\"AWS\":{\"Timeout\":3,\"Memory\":512}}"
-}

@@ -9,6 +9,7 @@ import (
 	"github.com/fragments/fragments/internal/backend"
 	fsmocks "github.com/fragments/fragments/internal/filestore/mocks"
 	"github.com/fragments/fragments/internal/state"
+	"github.com/fragments/fragments/pkg/snapshot"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,7 +26,7 @@ func TestPutFunction(t *testing.T) {
 			Checksum: "foo",
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestPutFunction.json")
+		kv.SaveSnapshot(t, "testdata/TestPutFunction.json")
 	}
 
 	foo := &state.Function{
@@ -57,17 +58,17 @@ func TestPutFunction(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No input",
+			TestName: "NoInput",
 			Function: nil,
 			Error:    true,
 		},
 		{
-			TestName: "No name",
+			TestName: "NoName",
 			Function: &state.Function{},
 			Error:    true,
 		},
 		{
-			TestName: "No existing",
+			TestName: "NoExisting",
 			Function: bar,
 			Token:    "token",
 			Response: &UploadRequest{
@@ -76,7 +77,7 @@ func TestPutFunction(t *testing.T) {
 			},
 		},
 		{
-			TestName: "Update code",
+			TestName: "UpdateCode",
 			Function: fooCode,
 			Token:    "token",
 			Response: &UploadRequest{
@@ -85,12 +86,12 @@ func TestPutFunction(t *testing.T) {
 			},
 		},
 		{
-			TestName: "Update config",
+			TestName: "UpdateConfig",
 			Function: fooConfig,
 			Response: nil,
 		},
 		{
-			TestName: "No change",
+			TestName: "NoChange",
 			Function: foo,
 			Response: nil,
 		},
@@ -99,7 +100,7 @@ func TestPutFunction(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("TestPutFunction.json")
+			kv := backend.NewTestKV("testdata/TestPutFunction.json")
 
 			mockSourceStore := &fsmocks.SourceTarget{}
 			mockSourceStore.
@@ -121,7 +122,7 @@ func TestPutFunction(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, test.Response, res)
 
-			kv.AssertSnapshot(t, fmt.Sprintf("TestPutFunction-%s.json", test.TestName), *update)
+			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestPutFunction-%s.txt", test.TestName), *update)
 		})
 	}
 }
@@ -154,7 +155,7 @@ func TestConfirmUpload(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestConfirmUpload.json")
+		kv.SaveSnapshot(t, "testdata/TestConfirmUpload.json")
 	}
 
 	tests := []struct {
@@ -163,21 +164,21 @@ func TestConfirmUpload(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No token",
+			TestName: "NoToken",
 			Token:    "",
 			Error:    true,
 		},
 		{
-			TestName: "No pending upload",
+			TestName: "NoPendingUpload",
 			Token:    "baz",
 			Error:    true,
 		},
 		{
-			TestName: "Updated config",
+			TestName: "UpdatedConfig",
 			Token:    "foo-config",
 		},
 		{
-			TestName: "Update code",
+			TestName: "UpdateCode",
 			Token:    "foo-code",
 		},
 	}
@@ -185,7 +186,7 @@ func TestConfirmUpload(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("TestConfirmUpload.json")
+			kv := backend.NewTestKV("testdata/TestConfirmUpload.json")
 
 			mockSourceStore := &fsmocks.SourceTarget{}
 			mockSourceStore.
@@ -207,7 +208,7 @@ func TestConfirmUpload(t *testing.T) {
 			require.NoError(t, err)
 			mockSourceStore.AssertExpectations(t)
 
-			kv.AssertSnapshot(t, fmt.Sprintf("TestConfirmUpload-%s.json", test.TestName), *update)
+			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestConfirmUpload-%s.txt", test.TestName), *update)
 		})
 	}
 }
@@ -221,7 +222,7 @@ func TestCreateEnvironment(t *testing.T) {
 			Infrastructure: state.InfrastructureTypeAWS,
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestCreateEnvironment.json")
+		kv.SaveSnapshot(t, "testdata/TestCreateEnvironment.json")
 	}
 
 	tests := []struct {
@@ -230,12 +231,12 @@ func TestCreateEnvironment(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No input",
+			TestName: "NoInput",
 			Input:    nil,
 			Error:    true,
 		},
 		{
-			TestName: "No name",
+			TestName: "NoName",
 			Input:    &EnvironmentInput{},
 			Error:    true,
 		},
@@ -263,7 +264,7 @@ func TestCreateEnvironment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("TestCreateEnvironment.json")
+			kv := backend.NewTestKV("testdata/TestCreateEnvironment.json")
 
 			secretsKV := backend.NewTestKV()
 
@@ -282,8 +283,8 @@ func TestCreateEnvironment(t *testing.T) {
 
 			require.NoError(t, err)
 
-			kv.AssertSnapshot(t, fmt.Sprintf("TestCreateEnvironment-%s-state", test.TestName), *update)
-			secretsKV.AssertSnapshot(t, fmt.Sprintf("TestCreateEnvironment-%s-secrets", test.TestName), *update)
+			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestCreateEnvironment-%s-state.txt", test.TestName), *update)
+			snapshot.AssertString(t, secretsKV.TestString(), fmt.Sprintf("testdata/TestCreateEnvironment-%s-secrets.txt", test.TestName), *update)
 		})
 	}
 }
@@ -298,7 +299,7 @@ func TestPutDeployment(t *testing.T) {
 			FunctionLabels:    map[string]string{},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestPutDeployment.json")
+		kv.SaveSnapshot(t, "testdata/TestPutDeployment.json")
 	}
 
 	tests := []struct {
@@ -307,12 +308,12 @@ func TestPutDeployment(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No input",
+			TestName: "NoInput",
 			Input:    nil,
 			Error:    true,
 		},
 		{
-			TestName: "No name",
+			TestName: "NoName",
 			Input:    &state.Deployment{},
 			Error:    true,
 		},
@@ -342,7 +343,7 @@ func TestPutDeployment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("TestPutDeployment.json")
+			kv := backend.NewTestKV("testdata/TestPutDeployment.json")
 
 			s := &Server{
 				StateStore: kv,
@@ -355,7 +356,7 @@ func TestPutDeployment(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			kv.AssertSnapshot(t, fmt.Sprintf("TestPutDeployment-%s", test.TestName), *update)
+			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestPutDeployment-%s-state.txt", test.TestName), *update)
 		})
 	}
 }

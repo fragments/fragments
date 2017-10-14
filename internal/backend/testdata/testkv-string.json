@@ -1,0 +1,8 @@
+{
+    "foo": "foo",
+    "bar": "bar",
+    "baz": "baz",
+    "json": "{\"key\": \"value\",\"another\": \"value\"}",
+    "json-embedded": "{\"key\":\"foo\",\"embedded\":\"{\\n    \\\"foo\\\": \\\"foo\\\",\\n    \\\"bar\\\": \\\"bar\\\"\\n}\"}",
+    "json-nested": "{\"key\":\"value\",\"another\":\"value\",\"deeply\":{\"nested\":{\"value\":123}}}"
+}

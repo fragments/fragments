@@ -39,11 +39,11 @@ func TestListDeployments(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestListDeployments.json")
+		kv.SaveSnapshot(t, "testdata/TestListDeployments.json")
 	}
 
 	ctx := context.Background()
-	kv := backend.NewTestKV("TestListDeployments.json")
+	kv := backend.NewTestKV("testdata/TestListDeployments.json")
 
 	tests := []struct {
 		TestName string
@@ -52,11 +52,11 @@ func TestListDeployments(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No matchers",
+			TestName: "NoMatchers",
 			Results:  3,
 		},
 		{
-			TestName: "Label matcher (match all)",
+			TestName: "LabelMatcherMatchAll",
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -67,7 +67,7 @@ func TestListDeployments(t *testing.T) {
 			Results: 2,
 		},
 		{
-			TestName: "Label matcher (match one)",
+			TestName: "LabelMatcherMatchOne",
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -78,7 +78,7 @@ func TestListDeployments(t *testing.T) {
 			Results: 1,
 		},
 		{
-			TestName: "Label matcher (match none)",
+			TestName: "LabelMatcherMatchNone",
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -133,11 +133,11 @@ func TestListEnvironments(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestListEnvironments.json")
+		kv.SaveSnapshot(t, "testdata/TestListEnvironments.json")
 	}
 
 	ctx := context.Background()
-	kv := backend.NewTestKV("TestListEnvironments.json")
+	kv := backend.NewTestKV("testdata/TestListEnvironments.json")
 
 	tests := []struct {
 		TestName string
@@ -146,11 +146,11 @@ func TestListEnvironments(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No matchers",
+			TestName: "NoMatchers",
 			Results:  3,
 		},
 		{
-			TestName: "Label matcher (match all)",
+			TestName: "LabelMatcherMatchAll",
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -161,7 +161,7 @@ func TestListEnvironments(t *testing.T) {
 			Results: 2,
 		},
 		{
-			TestName: "Label matcher (match one)",
+			TestName: "LabelMatcherMatchOne",
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -172,7 +172,7 @@ func TestListEnvironments(t *testing.T) {
 			Results: 1,
 		},
 		{
-			TestName: "Label matcher (match none)",
+			TestName: "LabelMatcherMatchNone",
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -227,11 +227,11 @@ func TestListFunctions(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestListFunctions.json")
+		kv.SaveSnapshot(t, "testdata/TestListFunctions.json")
 	}
 
 	ctx := context.Background()
-	kv := backend.NewTestKV("TestListFunctions.json")
+	kv := backend.NewTestKV("testdata/TestListFunctions.json")
 
 	tests := []struct {
 		TestName string
@@ -240,11 +240,11 @@ func TestListFunctions(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No matchers",
+			TestName: "NoMatchers",
 			Results:  3,
 		},
 		{
-			TestName: "Label matcher (match all)",
+			TestName: "LabelMatcherMatchAll",
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -255,7 +255,7 @@ func TestListFunctions(t *testing.T) {
 			Results: 2,
 		},
 		{
-			TestName: "Label matcher (match one)",
+			TestName: "LabelMatcherMatchOne",
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{
@@ -266,7 +266,7 @@ func TestListFunctions(t *testing.T) {
 			Results: 1,
 		},
 		{
-			TestName: "Label matcher (match none)",
+			TestName: "LabelMatcherMatchNone",
 			Matchers: []matcher{
 				&LabelMatcher{
 					Labels: map[string]string{

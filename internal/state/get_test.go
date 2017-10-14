@@ -21,7 +21,7 @@ func TestGetFunction(t *testing.T) {
 			Checksum: "abc",
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestGetFunction.json")
+		kv.SaveSnapshot(t, "testdata/TestGetFunction.json")
 	}
 
 	tests := []struct {
@@ -31,13 +31,13 @@ func TestGetFunction(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No name",
+			TestName: "NoName",
 			Name:     "",
 			Expected: nil,
 			Error:    true,
 		},
 		{
-			TestName: "Not found",
+			TestName: "NotFound",
 			Name:     "bar",
 			Expected: nil,
 			Error:    false,
@@ -59,7 +59,7 @@ func TestGetFunction(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("TestGetFunction.json")
+			kv := backend.NewTestKV("testdata/TestGetFunction.json")
 			actual, err := GetFunction(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)
@@ -85,7 +85,7 @@ func TestGetPendingUpload(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestGetPendingUpload.json")
+		kv.SaveSnapshot(t, "testdata/TestGetPendingUpload.json")
 	}
 
 	tests := []struct {
@@ -95,13 +95,13 @@ func TestGetPendingUpload(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No name",
+			TestName: "NoName",
 			Token:    "",
 			Expected: nil,
 			Error:    true,
 		},
 		{
-			TestName: "Not found",
+			TestName: "NotFound",
 			Token:    "baz",
 			Expected: nil,
 			Error:    false,
@@ -124,7 +124,7 @@ func TestGetPendingUpload(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("TestGetPendingUpload.json")
+			kv := backend.NewTestKV("testdata/TestGetPendingUpload.json")
 			actual, err := GetPendingUpload(ctx, kv, test.Token)
 			if test.Error {
 				require.Error(t, err)
@@ -148,7 +148,7 @@ func TestGetEnvironment(t *testing.T) {
 			Infrastructure: InfrastructureTypeAWS,
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestGetEnvironment.json")
+		kv.SaveSnapshot(t, "testdata/TestGetEnvironment.json")
 	}
 
 	tests := []struct {
@@ -158,13 +158,13 @@ func TestGetEnvironment(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No name",
+			TestName: "NoName",
 			Name:     "",
 			Expected: nil,
 			Error:    true,
 		},
 		{
-			TestName: "Not found",
+			TestName: "NotFound",
 			Name:     "bar",
 			Expected: nil,
 			Error:    false,
@@ -185,7 +185,7 @@ func TestGetEnvironment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("TestGetEnvironment.json")
+			kv := backend.NewTestKV("testdata/TestGetEnvironment.json")
 			actual, err := GetEnvironment(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)
@@ -214,7 +214,7 @@ func TestGetDeployment(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestGetDeployment.json")
+		kv.SaveSnapshot(t, "testdata/TestGetDeployment.json")
 	}
 
 	tests := []struct {
@@ -224,13 +224,13 @@ func TestGetDeployment(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No name",
+			TestName: "NoName",
 			Name:     "",
 			Expected: nil,
 			Error:    true,
 		},
 		{
-			TestName: "Not found",
+			TestName: "NotFound",
 			Name:     "bar",
 			Expected: nil,
 			Error:    false,
@@ -256,7 +256,7 @@ func TestGetDeployment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("TestGetDeployment.json")
+			kv := backend.NewTestKV("testdata/TestGetDeployment.json")
 			actual, err := GetDeployment(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
+	"github.com/fragments/fragments/pkg/snapshot"
 	"github.com/stretchr/testify/require"
 )
 
@@ -13,14 +14,21 @@ func TestDeletePendingUpload(t *testing.T) {
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
-		err := PutPendingUpload(ctx, kv, "token", &PendingUpload{
-			Filename: "filename.tar.gz",
+		err := PutPendingUpload(ctx, kv, "foo", &PendingUpload{
+			Filename: "foo.tar.gz",
 			Function: &Function{
 				Meta: Meta{Name: "foo"},
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "TestDeletePendingUpload.json")
+		err = PutPendingUpload(ctx, kv, "bar", &PendingUpload{
+			Filename: "bar.tar.gz",
+			Function: &Function{
+				Meta: Meta{Name: "foo"},
+			},
+		})
+		require.NoError(t, err)
+		kv.SaveSnapshot(t, "testdata/TestDeletePendingUpload.json")
 	}
 
 	tests := []struct {
@@ -29,23 +37,23 @@ func TestDeletePendingUpload(t *testing.T) {
 		Error    bool
 	}{
 		{
-			TestName: "No token",
+			TestName: "NoToken",
 			Error:    true,
 		},
 		{
-			TestName: "Not found",
-			Token:    "foo",
+			TestName: "NotFound",
+			Token:    "invalid",
 			Error:    true,
 		},
 		{
 			TestName: "Deleted",
-			Token:    "token",
+			Token:    "foo",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
-			kv := backend.NewTestKV("TestDeletePendingUpload.json")
+			kv := backend.NewTestKV("testdata/TestDeletePendingUpload.json")
 			ctx := context.Background()
 			err := DeletePendingUpload(ctx, kv, test.Token)
 			if test.Error {
@@ -54,7 +62,7 @@ func TestDeletePendingUpload(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			kv.AssertSnapshot(t, fmt.Sprintf("TestDeletePendingUpload-%s.json", test.TestName), *update)
+			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestDeletePendingUpload-%s.txt", test.TestName), *update)
 		})
 	}
 }
