@@ -1,5 +1,3 @@
-//go:generate mockery -name KV
-
 package backend
 
 import (
