@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -82,6 +83,12 @@ func (l *Local) Persist(ctx context.Context, name string) error {
 		return errors.Wrap(err, "could not move to source directory")
 	}
 	return nil
+}
+
+// GetFile returns a source file from the local filestore.
+func (l *Local) GetFile(name string) (io.ReadCloser, error) {
+	filename := filepath.Join(l.SourceDirectory, name)
+	return os.Open(filename)
 }
 
 // Shutdown gracefully closes the local filestore. New connections are not

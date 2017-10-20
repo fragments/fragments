@@ -52,8 +52,18 @@ func TestLocal(t *testing.T) {
 	// Assert
 	actual, err := ioutil.ReadFile(filepath.Join(source, "test"))
 	require.NoError(t, err)
+	assert.Equal(t, string(fixture), string(actual))
 
-	assert.EqualValues(t, string(fixture), string(actual))
+	// Get file
+	_, err = local.GetFile("nonexisting")
+	require.Error(t, err)
+
+	file, err := local.GetFile("test")
+	require.NoError(t, err)
+	data, err := ioutil.ReadAll(file)
+	require.NoError(t, err)
+	assert.Equal(t, fixture, data)
+	file.Close()
 
 	err = local.Shutdown()
 	require.NoError(t, err)
