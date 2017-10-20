@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/clientv3/concurrency"
 	"github.com/pkg/errors"
 )
 
@@ -84,6 +85,26 @@ func (e *ETCD) List(ctx context.Context, root string) (map[string]string, error)
 	}
 
 	return out, nil
+}
+
+// Lock creates a new distributes lock on a key. Any future locks on the same
+// key block until the lock is released. The lock is released if the context is
+// cancelled.
+//
+// When no longer needed, the lock must be unlocked by calling the returned
+// unlock function.
+//
+// Note: if the context is cancelled due to a timeout, this will still wait to
+// acquire the lock. The lock will timeout automatically by a value set on the
+// ETCD server (default 60 seconds).
+func (e *ETCD) Lock(ctx context.Context, key string) (func(), error) {
+	ses, err := concurrency.NewSession(e.client, concurrency.WithContext(ctx))
+	if err != nil {
+		return nil, errors.Wrap(err, "could not get etcd session for lock")
+	}
+	lock := concurrency.NewLocker(ses, key)
+	lock.Lock()
+	return lock.Unlock, nil
 }
 
 // Close closes the connection to ETCD.

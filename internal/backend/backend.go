@@ -29,6 +29,13 @@ type Lister interface {
 	List(ctx context.Context, root string) (map[string]string, error)
 }
 
+// Locker locks resources, preventing multiple clients modifying the same
+// resource in the backend.
+type Locker interface {
+	// Locker creates a distributed lock on a key.
+	Lock(ctx context.Context, key string) (func(), error)
+}
+
 // NotFoundError indicates that a key was not found.
 type NotFoundError struct {
 	// Key is the key that was not found.
