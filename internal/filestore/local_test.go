@@ -63,7 +63,8 @@ func TestLocal(t *testing.T) {
 	data, err := ioutil.ReadAll(file)
 	require.NoError(t, err)
 	assert.Equal(t, fixture, data)
-	file.Close()
+	err = file.Close()
+	require.NoError(t, err)
 
 	err = local.Shutdown()
 	require.NoError(t, err)
