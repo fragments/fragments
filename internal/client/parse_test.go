@@ -27,50 +27,50 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			TestName: "Invalid name",
-			File:     "_testdata/load/function-empty.yml",
+			File:     "testdata/load/function-empty.yml",
 			Error:    true,
 		},
 		{
 			TestName: "Malformed (yml)",
-			File:     "_testdata/load/malformed.yml",
+			File:     "testdata/load/malformed.yml",
 			Error:    true,
 		},
 		{
 			TestName: "Malformed (json)",
-			File:     "_testdata/load/malformed.json",
+			File:     "testdata/load/malformed.json",
 			Error:    true,
 		},
 		{
 			TestName: "Malformed (multiple json)",
-			File:     "_testdata/load/malformed-multiple.json",
+			File:     "testdata/load/malformed-multiple.json",
 			Error:    true,
 		},
 		{
 			TestName: "Skip",
-			File:     "_testdata/load/skip.yml",
+			File:     "testdata/load/skip.yml",
 			Models:   nil,
 		},
 		{
 			TestName: "Invalid (no meta)",
-			File:     "_testdata/load/function-invalid-nometa.yml",
+			File:     "testdata/load/function-invalid-nometa.yml",
 			Error:    true,
 		},
 		{
 			TestName: "Invalid (no name)",
-			File:     "_testdata/load/function-invalid-noname.yml",
+			File:     "testdata/load/function-invalid-noname.yml",
 			Error:    true,
 		},
 		{
 			TestName: "Invalid (type)",
-			File:     "_testdata/load/function-invalid-type.yml",
+			File:     "testdata/load/function-invalid-type.yml",
 			Error:    true,
 		},
 		{
 			TestName: "Valid function (yml)",
-			File:     "_testdata/load/function.yml",
+			File:     "testdata/load/function.yml",
 			Models: []Model{
 				&functionModel{
-					file: "_testdata/load/function.yml",
+					file: "testdata/load/function.yml",
 					meta: &Meta{
 						Name: "test",
 						Labels: map[string]string{
@@ -90,10 +90,10 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			TestName: "Valid deployment (yml)",
-			File:     "_testdata/load/deployment.yml",
+			File:     "testdata/load/deployment.yml",
 			Models: []Model{
 				&deploymentModel{
-					file: "_testdata/load/deployment.yml",
+					file: "testdata/load/deployment.yml",
 					meta: &Meta{
 						Name: "test",
 						Labels: map[string]string{
@@ -115,10 +115,10 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			TestName: "Valid function (json)",
-			File:     "_testdata/load/function.json",
+			File:     "testdata/load/function.json",
 			Models: []Model{
 				&functionModel{
-					file: "_testdata/load/function.json",
+					file: "testdata/load/function.json",
 					meta: &Meta{
 						Name: "test-json",
 						Labels: map[string]string{
@@ -138,10 +138,10 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			TestName: "Multiple (yaml)",
-			File:     "_testdata/load/function-multiple.yml",
+			File:     "testdata/load/function-multiple.yml",
 			Models: []Model{
 				&functionModel{
-					file: "_testdata/load/function-multiple.yml",
+					file: "testdata/load/function-multiple.yml",
 					meta: &Meta{
 						Name: "test1",
 					},
@@ -150,7 +150,7 @@ func TestLoad(t *testing.T) {
 					},
 				},
 				&functionModel{
-					file: "_testdata/load/function-multiple.yml",
+					file: "testdata/load/function-multiple.yml",
 					meta: &Meta{
 						Name: "test2",
 					},
@@ -162,10 +162,10 @@ func TestLoad(t *testing.T) {
 		},
 		{
 			TestName: "Multiple (json)",
-			File:     "_testdata/load/function-multiple.json",
+			File:     "testdata/load/function-multiple.json",
 			Models: []Model{
 				&functionModel{
-					file: "_testdata/load/function-multiple.json",
+					file: "testdata/load/function-multiple.json",
 					meta: &Meta{
 						Name: "test1-json",
 					},
@@ -177,7 +177,7 @@ func TestLoad(t *testing.T) {
 					},
 				},
 				&functionModel{
-					file: "_testdata/load/function-multiple.json",
+					file: "testdata/load/function-multiple.json",
 					meta: &Meta{
 						Name: "test2-json",
 					},

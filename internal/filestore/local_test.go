@@ -34,7 +34,7 @@ func TestLocal(t *testing.T) {
 	require.NoError(t, err)
 
 	// Upload to url
-	fixture, err := ioutil.ReadFile("_testdata/upload.txt")
+	fixture, err := ioutil.ReadFile("testdata/upload.txt")
 	require.NoError(t, err)
 	req, err := http.NewRequest(http.MethodPut, url, bytes.NewReader(fixture))
 	require.NoError(t, err)

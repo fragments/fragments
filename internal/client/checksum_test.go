@@ -28,7 +28,7 @@ func TestChecksum(t *testing.T) {
 		{
 			TestName: "Ignored all",
 			Files: []string{
-				"_testdata/checksum/a.txt",
+				"testdata/checksum/a.txt",
 			},
 			Ignore: []string{
 				"a.txt",
@@ -38,8 +38,8 @@ func TestChecksum(t *testing.T) {
 		{
 			TestName: "Files",
 			Files: []string{
-				"_testdata/checksum/a.txt",
-				"_testdata/checksum/b.txt",
+				"testdata/checksum/a.txt",
+				"testdata/checksum/b.txt",
 			},
 			// cat $(find $DIR -type f | sort) | shasum
 			Expected: "928f1abc474008fb586d62bcc3e043c5e3acb2aa",
@@ -47,8 +47,8 @@ func TestChecksum(t *testing.T) {
 		{
 			TestName: "Files",
 			Files: []string{
-				"_testdata/checksum/a.txt",
-				"_testdata/checksum/b.txt",
+				"testdata/checksum/a.txt",
+				"testdata/checksum/b.txt",
 			},
 			Ignore: []string{
 				"b.txt",

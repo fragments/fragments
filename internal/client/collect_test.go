@@ -23,22 +23,22 @@ func TestCollectSource(t *testing.T) {
 		},
 		{
 			TestName: "Valid",
-			Dir:      "_testdata/collect",
+			Dir:      "testdata/collect",
 			Expected: []string{
-				"_testdata/collect/file.js",
-				"_testdata/collect/.hidden",
-				"_testdata/collect/sub/file.js",
-				"_testdata/collect/node_modules/module.js",
+				"testdata/collect/file.js",
+				"testdata/collect/.hidden",
+				"testdata/collect/sub/file.js",
+				"testdata/collect/node_modules/module.js",
 			},
 		},
 		{
 			TestName: "Ignore",
-			Dir:      "_testdata/collect",
+			Dir:      "testdata/collect",
 			Ignore:   []string{"node_modules"},
 			Expected: []string{
-				"_testdata/collect/file.js",
-				"_testdata/collect/.hidden",
-				"_testdata/collect/sub/file.js",
+				"testdata/collect/file.js",
+				"testdata/collect/.hidden",
+				"testdata/collect/sub/file.js",
 			},
 		},
 	}

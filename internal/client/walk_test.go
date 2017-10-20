@@ -23,7 +23,7 @@ func TestWalk(t *testing.T) {
 		},
 		{
 			TestName: "Invalid ignore",
-			Dir:      "_testdata/walk",
+			Dir:      "testdata/walk",
 			Ignore: []string{
 				"[",
 			},
@@ -31,25 +31,25 @@ func TestWalk(t *testing.T) {
 		},
 		{
 			TestName: "Walk",
-			Dir:      "_testdata/walk",
+			Dir:      "testdata/walk",
 			Expected: []string{
-				"_testdata/walk/root.yml",
-				"_testdata/walk/foo/foo.yml",
-				"_testdata/walk/foo/baz.yml",
-				"_testdata/walk/foo/bar/bar1.yml",
-				"_testdata/walk/foo/bar/bar2.json",
+				"testdata/walk/root.yml",
+				"testdata/walk/foo/foo.yml",
+				"testdata/walk/foo/baz.yml",
+				"testdata/walk/foo/bar/bar1.yml",
+				"testdata/walk/foo/bar/bar2.json",
 			},
 		},
 		{
 			TestName: "Ignore",
-			Dir:      "_testdata/walk",
+			Dir:      "testdata/walk",
 			Ignore: []string{
 				"bar",
 			},
 			Expected: []string{
-				"_testdata/walk/root.yml",
-				"_testdata/walk/foo/foo.yml",
-				"_testdata/walk/foo/baz.yml",
+				"testdata/walk/root.yml",
+				"testdata/walk/foo/foo.yml",
+				"testdata/walk/foo/baz.yml",
 			},
 		},
 	}

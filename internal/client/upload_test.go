@@ -34,7 +34,7 @@ func TestUpload(t *testing.T) {
 			TestName: "Ok",
 			Response: 200,
 			GetData: func() []byte {
-				data, err := ioutil.ReadFile("_testdata/upload/file.txt")
+				data, err := ioutil.ReadFile("testdata/upload/file.txt")
 				require.NoError(t, err)
 				return data
 			},

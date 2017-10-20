@@ -30,8 +30,8 @@ func TestCompress(t *testing.T) {
 		{
 			TestName: "Ok",
 			Files: []string{
-				"_testdata/compress/file1.txt",
-				"_testdata/compress/file2.txt",
+				"testdata/compress/file1.txt",
+				"testdata/compress/file2.txt",
 			},
 			Content: map[string]string{
 				"file1.txt": "foo\n",
