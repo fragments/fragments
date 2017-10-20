@@ -1,4 +1,4 @@
-package server
+package state
 
 import (
 	"context"
@@ -14,7 +14,14 @@ const (
 	keySecretPass = "password"
 )
 
-func putUserCredentials(ctx context.Context, kv backend.KV, name, user, pass string) error {
+// PutUserCredentials stores the credentials for a user. The credentials are
+// used to perform action on behalf on the user when applying changes to the
+// infrastructure.
+func PutUserCredentials(ctx context.Context, kv backend.KV, name, user, pass string) error {
+	if name == "" {
+		return errors.New("name must be set")
+	}
+
 	userPath := fmt.Sprintf("user/%s/%s", name, keySecretUser)
 	passPath := fmt.Sprintf("user/%s/%s", name, keySecretPass)
 

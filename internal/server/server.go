@@ -144,7 +144,7 @@ func (s *Server) CreateEnvironment(ctx context.Context, input *EnvironmentInput)
 	}
 
 	// Store environment credentials
-	if err := putUserCredentials(ctx, s.SecretStore, name, input.Username, input.Password); err != nil {
+	if err := state.PutUserCredentials(ctx, s.SecretStore, name, input.Username, input.Password); err != nil {
 		return errors.Wrap(err, "error storing credentials")
 	}
 
