@@ -5,15 +5,18 @@ import (
 	"fmt"
 )
 
-// The KV interface is implemented by backends that persistently store key-value
-// data.
-type KV interface {
+// Reader reads values from a backend.
+type Reader interface {
+	// Get gets a value. In case the key does not exist, returns NotFoundError
+	// if the key was not found.
+	Get(ctx context.Context, key string) (string, error)
+}
+
+// The Writer interface is implemented by a backend that can be written to.
+type Writer interface {
 	// Put inserts a value under a key. In case the value already exists it is
 	// overwritten. The key is case-insensitive.
 	Put(ctx context.Context, key, value string) error
-	// Get gets a value. In case the key does not exist, returns NotFoundError if
-	// the key was not found.
-	Get(ctx context.Context, key string) (string, error)
 	// Delete deletes a key. In case the key does not exist, returns NotFoundError
 	// if the key was not found.
 	Delete(ctx context.Context, key string) error
@@ -28,6 +31,7 @@ type Lister interface {
 
 // NotFoundError indicates that a key was not found.
 type NotFoundError struct {
+	// Key is the key that was not found.
 	Key string
 }
 

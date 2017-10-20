@@ -9,7 +9,7 @@ import (
 )
 
 // PutModel creates or updates a generic model.
-func PutModel(ctx context.Context, kv backend.KV, modelType ModelType, model Model) error {
+func PutModel(ctx context.Context, kv backend.Writer, modelType ModelType, model Model) error {
 	if model == nil {
 		return errors.New("model is nil")
 	}
@@ -33,7 +33,7 @@ func PutModel(ctx context.Context, kv backend.KV, modelType ModelType, model Mod
 
 // PutPendingUpload stores an upload request in the backend. It is used for
 // confirming the upload.
-func PutPendingUpload(ctx context.Context, kv backend.KV, token string, upload *PendingUpload) error {
+func PutPendingUpload(ctx context.Context, kv backend.Writer, token string, upload *PendingUpload) error {
 	if upload == nil {
 		return errors.New("pending upload is nil")
 	}

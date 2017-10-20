@@ -17,7 +17,7 @@ const (
 // PutUserCredentials stores the credentials for a user. The credentials are
 // used to perform action on behalf on the user when applying changes to the
 // infrastructure.
-func PutUserCredentials(ctx context.Context, kv backend.KV, name, user, pass string) error {
+func PutUserCredentials(ctx context.Context, kv backend.Writer, name, user, pass string) error {
 	if name == "" {
 		return errors.New("name must be set")
 	}
