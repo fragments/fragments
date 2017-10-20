@@ -4,6 +4,7 @@ package backend
 
 import (
 	"context"
+	"io"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -80,6 +81,11 @@ func TestLockerLock(t *testing.T) {
 
 			_, err := client.Lock(ctx, "/lockcancel")
 			require.Error(t, err)
+
+			if closer, ok := client.(io.Closer); ok {
+				err := closer.Close()
+				require.NoError(t, err)
+			}
 		})
 	}
 }

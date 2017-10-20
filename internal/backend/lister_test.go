@@ -4,6 +4,7 @@ package backend
 
 import (
 	"context"
+	"io"
 	"testing"
 	"time"
 
@@ -65,6 +66,11 @@ func TestListerList(t *testing.T) {
 
 			_, err = client.List(ctx, "foo")
 			require.Error(t, err)
+
+			if closer, ok := client.(io.Closer); ok {
+				err := closer.Close()
+				require.NoError(t, err)
+			}
 		})
 	}
 }

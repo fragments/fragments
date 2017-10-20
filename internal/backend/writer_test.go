@@ -4,6 +4,7 @@ package backend
 
 import (
 	"context"
+	"io"
 	"os"
 	"testing"
 	"time"
@@ -84,6 +85,11 @@ func TestWriterWrite(t *testing.T) {
 			val, exists = validator.get(t, "foo")
 			assert.True(t, exists)
 			assert.Equal(t, "bar", val)
+
+			if closer, ok := client.(io.Closer); ok {
+				err := closer.Close()
+				require.NoError(t, err)
+			}
 		})
 	}
 }
@@ -114,6 +120,11 @@ func TestWriterDelete(t *testing.T) {
 
 			err = client.Delete(ctx, "foo")
 			require.Error(t, err)
+
+			if closer, ok := client.(io.Closer); ok {
+				err := closer.Close()
+				require.NoError(t, err)
+			}
 		})
 	}
 }

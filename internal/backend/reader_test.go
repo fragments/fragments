@@ -4,6 +4,7 @@ package backend
 
 import (
 	"context"
+	"io"
 	"os"
 	"testing"
 	"time"
@@ -74,6 +75,11 @@ func TestReaderGet(t *testing.T) {
 
 			_, err = client.Get(ctx, "foo")
 			require.Error(t, err)
+
+			if closer, ok := client.(io.Closer); ok {
+				err := closer.Close()
+				require.NoError(t, err)
+			}
 		})
 	}
 }
