@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"fmt"
 	"io/ioutil"
 	"testing"
 
@@ -80,6 +79,5 @@ func TestTestKVString(t *testing.T) {
 	actual := kv.TestString()
 	expected, err := ioutil.ReadFile("testdata/testkv-string.golden")
 	require.NoError(t, err)
-	fmt.Println(actual)
 	assert.Equal(t, string(expected), actual)
 }
