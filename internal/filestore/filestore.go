@@ -3,7 +3,10 @@
 
 package filestore
 
-import "context"
+import (
+	"context"
+	"io"
+)
 
 // SourceTarget is a target that accepts source code uploads.
 type SourceTarget interface {
@@ -16,5 +19,5 @@ type SourceTarget interface {
 // SourceReader reads source code from the filestore.
 type SourceReader interface {
 	// GetFile gets a file from the filestore
-	GetFile(filename string)
+	GetFile(filename string) (io.ReadCloser, error)
 }
