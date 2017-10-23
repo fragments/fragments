@@ -2,4 +2,4 @@
 
 set -e
 
-go generate $(go list ./... | grep -v vendor)
+go generate $(go list ./...)
