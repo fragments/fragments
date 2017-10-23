@@ -46,6 +46,7 @@ jobs:
               --vendored-linters \
               --skip internal/filestore/mocks \
               --skip internal/backend/mocks \
+              --skip internal/reconciler/mocks \
               --sort=severity \
               --aggregate \
               --disable-all \

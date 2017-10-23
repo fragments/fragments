@@ -1,4 +1,5 @@
 //go:generate mockery -name SourceTarget
+//go:generate mockery -name SourceReader
 
 package filestore
 
