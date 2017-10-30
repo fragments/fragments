@@ -32,6 +32,12 @@ var lockers = []struct {
 			return etcd
 		},
 	},
+	{
+		Name: "TestKV",
+		New: func(t *testing.T) LockerReaderWriter {
+			return NewTestKV()
+		},
+	},
 }
 
 func TestLockerLock(t *testing.T) {

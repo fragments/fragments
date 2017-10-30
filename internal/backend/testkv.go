@@ -16,8 +16,9 @@ import (
 
 // TestKV keeps data in memory. It should only be used for unit tests.
 type TestKV struct {
-	Data map[string]string
-	mu   sync.Mutex
+	Data  map[string]string
+	mu    sync.Mutex
+	locks map[string]sync.Locker
 }
 
 // NewTestKV creates a new in key-value backend for tests.
@@ -28,7 +29,8 @@ type TestKV struct {
 // Panics if a snapshot fails to load.
 func NewTestKV(snapshots ...string) *TestKV {
 	kv := &TestKV{
-		Data: make(map[string]string),
+		Data:  make(map[string]string),
+		locks: make(map[string]sync.Locker),
 	}
 
 	for _, snapshot := range snapshots {
@@ -173,4 +175,24 @@ func (t *TestKV) TestString() string {
 	}
 	t.mu.Unlock()
 	return buf.String()
+}
+
+// Lock locks a key on the test kv. The key is locked for concurrent access
+// until unlocked by calling the returned function.
+func (t *TestKV) Lock(ctx context.Context, key string) (func(), error) {
+	if ctx.Done() != nil {
+		return func() {}, ctx.Err()
+	}
+
+	t.mu.Lock()
+	locker, exists := t.locks[key]
+	if !exists {
+		locker = new(sync.Mutex)
+		t.locks[key] = locker
+	}
+	t.mu.Unlock()
+
+	locker.Lock()
+
+	return locker.Unlock, nil
 }
