@@ -3,7 +3,7 @@
                                "Name": "foo",
                                "Labels": null
                            },
-                           "Runtime": "",
+                           "Runtime": "nodejs",
                            "Checksum": "foo",
                            "SourceFilename": "foo.tar.gz",
                            "AWS": {
@@ -19,8 +19,25 @@
                                    "Name": "bar",
                                    "Labels": null
                                },
-                               "Runtime": "",
+                               "Runtime": "go",
                                "Checksum": "updated",
+                               "SourceFilename": "",
+                               "AWS": {
+                                   "Timeout": 3,
+                                   "Memory": 256
+                               }
+                           }
+                       }
+/uploads/new         : {
+                           "Filename": "new.tar.gz",
+                           "PreviousFilename": "",
+                           "Function": {
+                               "Meta": {
+                                   "Name": "new",
+                                   "Labels": null
+                               },
+                               "Runtime": "go",
+                               "Checksum": "new",
                                "SourceFilename": "",
                                "AWS": {
                                    "Timeout": 3,

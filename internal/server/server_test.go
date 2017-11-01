@@ -132,9 +132,21 @@ func TestConfirmUpload(t *testing.T) {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
 		err := state.PutModel(ctx, kv, state.ModelTypeFunction, &state.Function{
-			Meta:     state.Meta{Name: "foo"},
-			AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
-			Checksum: "foo",
+			Meta:           state.Meta{Name: "foo"},
+			AWS:            &state.FunctionAWS{Timeout: 3, Memory: 256},
+			Runtime:        "go",
+			SourceFilename: "previous.tar.gz",
+			Checksum:       "foo",
+		})
+		require.NoError(t, err)
+		err = state.PutPendingUpload(ctx, kv, "new", &state.PendingUpload{
+			Filename: "new.tar.gz",
+			Function: &state.Function{
+				Meta:     state.Meta{Name: "new"},
+				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
+				Runtime:  "go",
+				Checksum: "new",
+			},
 		})
 		require.NoError(t, err)
 		err = state.PutPendingUpload(ctx, kv, "foo-config", &state.PendingUpload{
@@ -142,6 +154,7 @@ func TestConfirmUpload(t *testing.T) {
 			Function: &state.Function{
 				Meta:     state.Meta{Name: "foo"},
 				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 1024},
+				Runtime:  "nodejs",
 				Checksum: "foo",
 			},
 		})
@@ -151,6 +164,7 @@ func TestConfirmUpload(t *testing.T) {
 			Function: &state.Function{
 				Meta:     state.Meta{Name: "bar"},
 				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
+				Runtime:  "go",
 				Checksum: "updated",
 			},
 		})
@@ -172,6 +186,10 @@ func TestConfirmUpload(t *testing.T) {
 			TestName: "NoPendingUpload",
 			Token:    "baz",
 			Error:    true,
+		},
+		{
+			TestName: "New",
+			Token:    "new",
 		},
 		{
 			TestName: "UpdatedConfig",
