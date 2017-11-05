@@ -2,21 +2,23 @@ package mocks
 
 import "github.com/stretchr/testify/mock"
 
-import "io"
+import "os"
 
 type SourceReader struct {
 	mock.Mock
 }
 
 // GetFile provides a mock function with given fields: filename
-func (_m *SourceReader) GetFile(filename string) (io.ReadCloser, error) {
+func (_m *SourceReader) GetFile(filename string) (*os.File, error) {
 	ret := _m.Called(filename)
 
-	var r0 io.ReadCloser
-	if rf, ok := ret.Get(0).(func(string) io.ReadCloser); ok {
+	var r0 *os.File
+	if rf, ok := ret.Get(0).(func(string) *os.File); ok {
 		r0 = rf(filename)
 	} else {
-		r0 = ret.Get(0).(io.ReadCloser)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*os.File)
+		}
 	}
 
 	var r1 error

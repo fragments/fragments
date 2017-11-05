@@ -86,7 +86,7 @@ func (l *Local) Persist(ctx context.Context, name string) error {
 }
 
 // GetFile returns a source file from the local filestore.
-func (l *Local) GetFile(name string) (io.ReadCloser, error) {
+func (l *Local) GetFile(name string) (*os.File, error) {
 	filename := filepath.Join(l.SourceDirectory, name)
 	return os.Open(filename)
 }
