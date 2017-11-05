@@ -1,0 +1,50 @@
+/models/function/foo: |
+    {
+        "Meta": {
+            "Name": "foo",
+            "Labels": null
+        },
+        "Runtime": "nodejs",
+        "Checksum": "foo",
+        "SourceFilename": "foo.tar.gz",
+        "AWS": {
+            "Timeout": 3,
+            "Memory": 1024
+        }
+    }
+/uploads/foo-code: |
+    {
+        "Filename": "bar.tar.gz",
+        "PreviousFilename": "",
+        "Function": {
+            "Meta": {
+                "Name": "bar",
+                "Labels": null
+            },
+            "Runtime": "go",
+            "Checksum": "updated",
+            "SourceFilename": "",
+            "AWS": {
+                "Timeout": 3,
+                "Memory": 256
+            }
+        }
+    }
+/uploads/new: |
+    {
+        "Filename": "new.tar.gz",
+        "PreviousFilename": "",
+        "Function": {
+            "Meta": {
+                "Name": "new",
+                "Labels": null
+            },
+            "Runtime": "go",
+            "Checksum": "new",
+            "SourceFilename": "",
+            "AWS": {
+                "Timeout": 3,
+                "Memory": 256
+            }
+        }
+    }

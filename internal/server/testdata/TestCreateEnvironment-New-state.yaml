@@ -1,0 +1,20 @@
+/models/environment/bar: |
+    {
+        "Meta": {
+            "Name": "bar",
+            "Labels": {
+                "foo": "bar"
+            }
+        },
+        "Infrastructure": "aws",
+        "AWS": null
+    }
+/models/environment/foo: |
+    {
+        "Meta": {
+            "Name": "foo",
+            "Labels": null
+        },
+        "Infrastructure": "aws",
+        "AWS": null
+    }

@@ -89,7 +89,7 @@ func TestPutModel(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestPutModel-%s.txt", test.TestName), *update)
+			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestPutModel-%s.yaml", test.TestName), *update)
 		})
 	}
 }
@@ -165,7 +165,7 @@ func TestPutPendingUpload(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestPutPendingUpload-%s.txt", test.TestName), *update)
+			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestPutPendingUpload-%s.yaml", test.TestName), *update)
 		})
 	}
 }

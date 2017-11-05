@@ -1,5 +1,0 @@
-{
-	"/models/deployment/bar": "{\"Meta\":{\"Name\":\"bar\",\"Labels\":{\"bar\":\"bar\",\"baz\":\"baz\"}},\"EnvironmentLabels\":null,\"FunctionLabels\":null}",
-	"/models/deployment/baz": "{\"Meta\":{\"Name\":\"baz\",\"Labels\":null},\"EnvironmentLabels\":null,\"FunctionLabels\":null}",
-	"/models/deployment/foo": "{\"Meta\":{\"Name\":\"foo\",\"Labels\":{\"bar\":\"bar\",\"foo\":\"foo\"}},\"EnvironmentLabels\":null,\"FunctionLabels\":null}"
-}

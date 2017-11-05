@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"io/ioutil"
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
@@ -10,6 +11,7 @@ import (
 )
 
 func TestListDeployments(t *testing.T) {
+	snapshotFile := "testdata/TestListDeployments.yaml"
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
@@ -39,11 +41,15 @@ func TestListDeployments(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "testdata/TestListDeployments.json")
+		data := kv.Snapshot()
+		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	ctx := context.Background()
-	kv := backend.NewTestKV("testdata/TestListDeployments.json")
+	kv := backend.NewTestKV()
+	kv.LoadSnapshot(snapshotFile)
 
 	tests := []struct {
 		TestName string
@@ -104,6 +110,7 @@ func TestListDeployments(t *testing.T) {
 }
 
 func TestListEnvironments(t *testing.T) {
+	snapshotFile := "testdata/TestListEnvironments.yaml"
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
@@ -133,11 +140,15 @@ func TestListEnvironments(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "testdata/TestListEnvironments.json")
+		data := kv.Snapshot()
+		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	ctx := context.Background()
-	kv := backend.NewTestKV("testdata/TestListEnvironments.json")
+	kv := backend.NewTestKV()
+	kv.LoadSnapshot(snapshotFile)
 
 	tests := []struct {
 		TestName string
@@ -198,6 +209,7 @@ func TestListEnvironments(t *testing.T) {
 }
 
 func TestListFunctions(t *testing.T) {
+	snapshotFile := "testdata/TestListFunctions.yaml"
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
@@ -227,11 +239,15 @@ func TestListFunctions(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "testdata/TestListFunctions.json")
+		data := kv.Snapshot()
+		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	ctx := context.Background()
-	kv := backend.NewTestKV("testdata/TestListFunctions.json")
+	kv := backend.NewTestKV()
+	kv.LoadSnapshot(snapshotFile)
 
 	tests := []struct {
 		TestName string

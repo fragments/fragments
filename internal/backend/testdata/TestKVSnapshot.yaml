@@ -1,0 +1,19 @@
+json: |
+    {
+        "foo": "foo",
+        "bar": 123
+    }
+jsonNested: |
+    {
+        "foo": "foo",
+        "bar": {
+            "foo": "foo",
+            "baz": "baz"
+        }
+    }
+multiline: |
+    bar
+    baz
+    
+    baz
+simple: foo

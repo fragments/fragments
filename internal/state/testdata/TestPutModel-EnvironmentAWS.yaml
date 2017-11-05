@@ -1,0 +1,13 @@
+/models/environment/foo: |
+    {
+        "Meta": {
+            "Name": "foo",
+            "Labels": {
+                "bar": "bar"
+            }
+        },
+        "Infrastructure": "aws",
+        "AWS": {
+            "Region": "us-east-1"
+        }
+    }

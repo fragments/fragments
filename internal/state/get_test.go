@@ -2,6 +2,7 @@ package state
 
 import (
 	"context"
+	"io/ioutil"
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
@@ -10,6 +11,7 @@ import (
 )
 
 func TestGetFunction(t *testing.T) {
+	snapshotFile := "testdata/TestGetFunction.yaml"
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
@@ -21,7 +23,10 @@ func TestGetFunction(t *testing.T) {
 			Checksum: "abc",
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "testdata/TestGetFunction.json")
+		data := kv.Snapshot()
+		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	tests := []struct {
@@ -59,7 +64,8 @@ func TestGetFunction(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("testdata/TestGetFunction.json")
+			kv := backend.NewTestKV()
+			kv.LoadSnapshot(snapshotFile)
 			actual, err := GetFunction(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)
@@ -73,6 +79,7 @@ func TestGetFunction(t *testing.T) {
 }
 
 func TestGetPendingUpload(t *testing.T) {
+	snapshotFile := "testdata/TestGetPendingUpload.yaml"
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
@@ -85,7 +92,10 @@ func TestGetPendingUpload(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "testdata/TestGetPendingUpload.json")
+		data := kv.Snapshot()
+		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	tests := []struct {
@@ -124,7 +134,8 @@ func TestGetPendingUpload(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("testdata/TestGetPendingUpload.json")
+			kv := backend.NewTestKV()
+			kv.LoadSnapshot(snapshotFile)
 			actual, err := GetPendingUpload(ctx, kv, test.Token)
 			if test.Error {
 				require.Error(t, err)
@@ -138,6 +149,7 @@ func TestGetPendingUpload(t *testing.T) {
 }
 
 func TestGetEnvironment(t *testing.T) {
+	snapshotFile := "testdata/TestGetEnvironment.yaml"
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
@@ -148,7 +160,10 @@ func TestGetEnvironment(t *testing.T) {
 			Infrastructure: InfrastructureTypeAWS,
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "testdata/TestGetEnvironment.json")
+		data := kv.Snapshot()
+		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	tests := []struct {
@@ -185,7 +200,8 @@ func TestGetEnvironment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("testdata/TestGetEnvironment.json")
+			kv := backend.NewTestKV()
+			kv.LoadSnapshot(snapshotFile)
 			actual, err := GetEnvironment(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)
@@ -199,6 +215,7 @@ func TestGetEnvironment(t *testing.T) {
 }
 
 func TestGetDeployment(t *testing.T) {
+	snapshotFile := "testdata/TestGetDeployment.yaml"
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
@@ -214,7 +231,10 @@ func TestGetDeployment(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "testdata/TestGetDeployment.json")
+		data := kv.Snapshot()
+		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	tests := []struct {
@@ -256,7 +276,8 @@ func TestGetDeployment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("testdata/TestGetDeployment.json")
+			kv := backend.NewTestKV()
+			kv.LoadSnapshot(snapshotFile)
 			actual, err := GetDeployment(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)

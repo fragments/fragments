@@ -1,5 +1,0 @@
-{
-	"/models/environment/bar": "{\"Meta\":{\"Name\":\"bar\",\"Labels\":{\"bar\":\"bar\",\"baz\":\"baz\"}},\"Infrastructure\":\"\",\"AWS\":null}",
-	"/models/environment/baz": "{\"Meta\":{\"Name\":\"baz\",\"Labels\":null},\"Infrastructure\":\"\",\"AWS\":null}",
-	"/models/environment/foo": "{\"Meta\":{\"Name\":\"foo\",\"Labels\":{\"bar\":\"bar\",\"foo\":\"foo\"}},\"Infrastructure\":\"\",\"AWS\":null}"
-}

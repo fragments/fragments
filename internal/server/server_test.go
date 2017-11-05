@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
@@ -17,6 +18,7 @@ import (
 var update = flag.Bool("test.update", false, "update test snapshots")
 
 func TestPutFunction(t *testing.T) {
+	snapshotFile := "testdata/TestPutFunction.yaml"
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
@@ -26,7 +28,10 @@ func TestPutFunction(t *testing.T) {
 			Checksum: "foo",
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "testdata/TestPutFunction.json")
+		data := kv.Snapshot()
+		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	foo := &state.Function{
@@ -100,7 +105,8 @@ func TestPutFunction(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("testdata/TestPutFunction.json")
+			kv := backend.NewTestKV()
+			kv.LoadSnapshot(snapshotFile)
 
 			mockSourceStore := &fsmocks.SourceTarget{}
 			mockSourceStore.
@@ -122,12 +128,13 @@ func TestPutFunction(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, test.Response, res)
 
-			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestPutFunction-%s.txt", test.TestName), *update)
+			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestPutFunction-%s.yaml", test.TestName), *update)
 		})
 	}
 }
 
 func TestConfirmUpload(t *testing.T) {
+	snapshotFile := "testdata/TestConfirmUpload.yaml"
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
@@ -169,7 +176,10 @@ func TestConfirmUpload(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "testdata/TestConfirmUpload.json")
+		data := kv.Snapshot()
+		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	tests := []struct {
@@ -204,7 +214,8 @@ func TestConfirmUpload(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("testdata/TestConfirmUpload.json")
+			kv := backend.NewTestKV()
+			kv.LoadSnapshot(snapshotFile)
 
 			mockSourceStore := &fsmocks.SourceTarget{}
 			mockSourceStore.
@@ -226,12 +237,13 @@ func TestConfirmUpload(t *testing.T) {
 			require.NoError(t, err)
 			mockSourceStore.AssertExpectations(t)
 
-			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestConfirmUpload-%s.txt", test.TestName), *update)
+			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestConfirmUpload-%s.yaml", test.TestName), *update)
 		})
 	}
 }
 
 func TestCreateEnvironment(t *testing.T) {
+	snapshotFile := "testdata/TestCreateEnvironment.yaml"
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
@@ -240,7 +252,10 @@ func TestCreateEnvironment(t *testing.T) {
 			Infrastructure: state.InfrastructureTypeAWS,
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "testdata/TestCreateEnvironment.json")
+		data := kv.Snapshot()
+		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	tests := []struct {
@@ -282,7 +297,8 @@ func TestCreateEnvironment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("testdata/TestCreateEnvironment.json")
+			kv := backend.NewTestKV()
+			kv.LoadSnapshot(snapshotFile)
 
 			secretsKV := backend.NewTestKV()
 
@@ -301,13 +317,14 @@ func TestCreateEnvironment(t *testing.T) {
 
 			require.NoError(t, err)
 
-			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestCreateEnvironment-%s-state.txt", test.TestName), *update)
-			snapshot.AssertString(t, secretsKV.TestString(), fmt.Sprintf("testdata/TestCreateEnvironment-%s-secrets.txt", test.TestName), *update)
+			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestCreateEnvironment-%s-state.yaml", test.TestName), *update)
+			snapshot.AssertString(t, secretsKV.Snapshot(), fmt.Sprintf("testdata/TestCreateEnvironment-%s-secrets.yaml", test.TestName), *update)
 		})
 	}
 }
 
 func TestPutDeployment(t *testing.T) {
+	snapshotFile := "testdata/TestPutDeployment.yaml"
 	if *update {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
@@ -317,7 +334,10 @@ func TestPutDeployment(t *testing.T) {
 			FunctionLabels:    map[string]string{},
 		})
 		require.NoError(t, err)
-		kv.SaveSnapshot(t, "testdata/TestPutDeployment.json")
+		data := kv.Snapshot()
+		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	tests := []struct {
@@ -361,7 +381,8 @@ func TestPutDeployment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV("testdata/TestPutDeployment.json")
+			kv := backend.NewTestKV()
+			kv.LoadSnapshot(snapshotFile)
 
 			s := &Server{
 				StateStore: kv,
@@ -374,7 +395,7 @@ func TestPutDeployment(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestPutDeployment-%s-state.txt", test.TestName), *update)
+			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestPutDeployment-%s-state.yaml", test.TestName), *update)
 		})
 	}
 }

@@ -42,7 +42,7 @@ func TestPutUserCredentials(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			snapshot.AssertString(t, kv.TestString(), fmt.Sprintf("testdata/TestPutUserCredentials-%s.txt", test.TestName), *update)
+			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestPutUserCredentials-%s.yaml", test.TestName), *update)
 		})
 	}
 }

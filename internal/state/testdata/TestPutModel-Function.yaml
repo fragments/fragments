@@ -1,0 +1,13 @@
+/models/function/foo: |
+    {
+        "Meta": {
+            "Name": "foo",
+            "Labels": {
+                "foo": "foo"
+            }
+        },
+        "Runtime": "go",
+        "Checksum": "abc",
+        "SourceFilename": "file.tar.gz",
+        "AWS": null
+    }
