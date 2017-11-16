@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/fragments/fragments/internal/client"
+	"github.com/fragments/fragments/internal/reconciler"
 	"github.com/fragments/fragments/internal/server"
 	"github.com/fragments/fragments/internal/state"
 	"github.com/golang/sync/errgroup"
@@ -56,10 +57,17 @@ func newApplyCommand() *cobra.Command {
 		etcd, err := getETCD(flags)
 		checkErr(errors.Wrap(err, "could not set up etcd"))
 
-		s := server.New(etcd, nil, fileStore)
+		vault, err := getVault(flags)
+		checkErr(errors.Wrap(err, "could not set up vault"))
 
 		ctx := contextFromSignal()
+
+		s := server.New(etcd, nil, fileStore)
 		err = apply(ctx, s, models, excludeSource)
+		checkErr(err)
+
+		reco := reconciler.New(etcd, vault, fileStore)
+		err = reco.Run(ctx)
 		checkErr(err)
 
 		err = etcd.Close()

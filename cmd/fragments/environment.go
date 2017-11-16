@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/fragments/fragments/internal/reconciler"
 	"github.com/fragments/fragments/internal/server"
 	"github.com/fragments/fragments/internal/state"
 	"github.com/pkg/errors"
@@ -60,12 +61,18 @@ func newEnvironmentCreateCommand() *cobra.Command {
 		l, err := extractLabels(*labels)
 		checkErr(errors.Wrap(err, "format must be key=value"))
 
+		fileStore, err := getFilestore()
+		checkErr(errors.Wrap(err, "could not set up local filestore"))
+
 		etcd, err := getETCD(flags)
 		checkErr(errors.Wrap(err, "could not set up etcd"))
 
 		vault, err := getVault(flags)
 		checkErr(errors.Wrap(err, "could not set up vault"))
 
+		ctx := contextFromSignal()
+
+		s := server.New(etcd, vault, nil)
 		input := &server.EnvironmentInput{
 			Name:           *name,
 			Labels:         l,
@@ -76,13 +83,12 @@ func newEnvironmentCreateCommand() *cobra.Command {
 				Region: *awsRegion,
 			},
 		}
-
-		s := server.New(etcd, vault, nil)
-
-		ctx := contextFromSignal()
-
 		err = s.CreateEnvironment(ctx, input)
 		checkErr(errors.Wrap(err, "create environment failed"))
+
+		reco := reconciler.New(etcd, vault, fileStore)
+		err = reco.Run(ctx)
+		checkErr(err)
 
 		err = etcd.Close()
 		checkErr(err)
