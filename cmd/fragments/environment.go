@@ -91,7 +91,7 @@ func newEnvironmentCreateCommand() *cobra.Command {
 	return cmd
 }
 
-func parseInfrastructure(name string) (state.InfrastructureType, error) {
+func parseInfrastructure(name string) (state.InfraType, error) {
 	n := strings.ToLower(name)
 	switch n {
 	case string(state.InfrastructureTypeAWS):

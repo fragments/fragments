@@ -13,12 +13,12 @@ const (
 	ModelTypeDeployment ModelType = "deployment"
 )
 
-// InfrastructureType is a target infrastructure to deploy to
-type InfrastructureType string
+// InfraType is a target infrastructure to deploy to
+type InfraType string
 
 const (
 	// InfrastructureTypeAWS is Amazon Web Services
-	InfrastructureTypeAWS InfrastructureType = "aws"
+	InfrastructureTypeAWS InfraType = "aws"
 )
 
 // Model is a a generic model.
@@ -85,7 +85,7 @@ type Environment struct {
 	// Meta contains environment metadata.
 	Meta Meta
 	// Infrastructure defines what type the infrastructure type is for the environment.
-	Infrastructure InfrastructureType
+	Infrastructure InfraType
 	// AWS specifies AWS specific deployment information
 	AWS *InfrastructureAWS
 }

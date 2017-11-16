@@ -118,7 +118,7 @@ type EnvironmentInput struct {
 	// Labels are used to map a deployment to the environment.
 	Labels map[string]string
 	// Infrastructure is the type of infrastructure the environment is for
-	Infrastructure state.InfrastructureType
+	Infrastructure state.InfraType
 	// Username is the username used to authenticate to the infrastructure
 	// provider.
 	Username string
