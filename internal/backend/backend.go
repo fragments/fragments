@@ -22,6 +22,12 @@ type Writer interface {
 	Delete(ctx context.Context, key string) error
 }
 
+// ReaderWriter is both a reader and a writer
+type ReaderWriter interface {
+	Reader
+	Writer
+}
+
 // The Lister interface is implemented by backends that can list keys under a
 // key.
 type Lister interface {

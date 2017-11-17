@@ -1,0 +1,8 @@
+/resources/infra/resType/foo: |
+    {
+        "data": {
+            "Value": "test"
+        },
+        "created": "2017-10-31T10:34:56Z",
+        "updated": "2017-10-31T10:34:56Z"
+    }

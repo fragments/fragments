@@ -1,0 +1,8 @@
+/resources/infra/resType/foo: |
+    {
+        "data": {
+            "Value": "previous"
+        },
+        "created": "2017-02-01T08:34:56Z",
+        "updated": "2017-02-01T08:34:56Z"
+    }

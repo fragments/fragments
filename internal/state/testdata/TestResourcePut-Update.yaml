@@ -1,0 +1,8 @@
+/resources/testinfra/testres/existing: |
+    {
+        "data": {
+            "Value": "new"
+        },
+        "created": "2017-02-01T10:34:56+02:00",
+        "updated": "2017-10-10T11:34:56+02:00"
+    }
