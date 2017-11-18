@@ -60,10 +60,17 @@ func (l *lambdaReconciler) putFunction(ctx context.Context, input *state.Functio
 		return f, nil
 	}
 
-	// Lambda does not exist, ensure default role is created
-
-	// TODO(akupila): implement getting role
-	var role *iam.Role
+	// TODO(akupila): allow passing in/replacing default role
+	iam := newIAM(l.store, l.svcProvider)
+	role, err := iam.putRole(ctx, &iamRoleInput{
+		assumeRolePolicyDocument: mustCompress(defaultAssumeLambdaExecPolicy),
+		description:              defaultLambdaRoleDescription,
+		path:                     defaultLambdaRolePath,
+		roleName:                 defaultLambdaRoleName,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "errot putting lambda default role")
+	}
 
 	f, err := l.create(ctx, role, input)
 	if err != nil {
