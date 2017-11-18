@@ -5,6 +5,7 @@ import (
 
 	"github.com/fragments/fragments/internal/backend"
 	"github.com/fragments/fragments/internal/filestore"
+	"github.com/fragments/fragments/internal/reconciler/aws"
 	"github.com/fragments/fragments/internal/state"
 	"github.com/golang/sync/errgroup"
 	"github.com/pkg/errors"
@@ -34,6 +35,12 @@ type Reconciler struct {
 // New creates a new reconciler.
 func New(stateStore statestore, secretStore backend.Reader, sourceRepo filestore.SourceReader) *Reconciler {
 	infra := make(map[state.InfraType]Infrastructure)
+
+	infra[state.InfrastructureTypeAWS] = &aws.Reconciler{
+		StateStore:  stateStore,
+		SecretStore: secretStore,
+		SourceRepo:  sourceRepo,
+	}
 
 	return &Reconciler{
 		StateStore:  stateStore,
