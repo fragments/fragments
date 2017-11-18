@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/fragments/fragments/internal/backend"
 	"github.com/golang/sync/errgroup"
 	"github.com/pkg/errors"
@@ -43,4 +44,38 @@ func PutUserCredentials(ctx context.Context, kv backend.Writer, name, user, pass
 		return errors.Wrap(err, "could not store credentials")
 	}
 	return nil
+}
+
+// UserAWSCredentials returns AWS credentials for a user. The username assigned
+// to credentials is used as the access key, the password is the secret.
+func UserAWSCredentials(ctx context.Context, kv backend.Reader, name string) (*credentials.Credentials, error) {
+	userPath := fmt.Sprintf("user/%s/%s", name, keySecretUser)
+	passPath := fmt.Sprintf("user/%s/%s", name, keySecretPass)
+
+	var id string
+	var secret string
+
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		v, err := kv.Get(ctx, userPath)
+		if err != nil {
+			return errors.Wrap(err, "user")
+		}
+		id = v
+		return nil
+	})
+	g.Go(func() error {
+		v, err := kv.Get(ctx, passPath)
+		if err != nil {
+			return errors.Wrap(err, "pass")
+		}
+		secret = v
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		return nil, errors.Wrap(err, "could not read credentials")
+	}
+
+	return credentials.NewStaticCredentials(id, secret, ""), nil
 }
