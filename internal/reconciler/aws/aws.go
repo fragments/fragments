@@ -40,9 +40,14 @@ func (r *Reconciler) Reconcile(ctx context.Context, environment *state.Environme
 		region:      config.Region,
 	}
 
-	_ = svcProvider
+	lambda := newLambda(r.StateStore, r.SourceRepo, svcProvider)
 
-	return errors.New("aws reconciler not implemented")
+	_, err = lambda.putFunction(ctx, function)
+	if err != nil {
+		return errors.Wrap(err, "error putting lambda")
+	}
+
+	return nil
 }
 
 func (r *Reconciler) getConfig(environment *state.Environment) *state.InfrastructureAWS {

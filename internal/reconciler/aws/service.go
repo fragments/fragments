@@ -4,11 +4,12 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/pkg/errors"
 )
 
 type serviceProvider interface {
-	session() (*session.Session, error)
+	lambda() (lambdaService, error)
 }
 
 type defaultProvider struct {
@@ -27,4 +28,12 @@ func (d *defaultProvider) session() (*session.Session, error) {
 		return nil, errors.Wrap(err, "error creating aws session")
 	}
 	return ses, nil
+}
+
+func (d *defaultProvider) lambda() (lambdaService, error) {
+	ses, err := d.session()
+	if err != nil {
+		return nil, err
+	}
+	return lambda.New(ses), nil
 }
