@@ -22,15 +22,16 @@
             "Meta": {
                 "Name": "foo",
                 "Labels": {
-                    "code": "updated"
+                    "code": "updated",
+                    "config": "updated"
                 }
             },
             "Runtime": "nodejs",
             "Checksum": "foobar",
             "SourceFilename": "",
             "AWS": {
-                "Timeout": 3,
-                "Memory": 256
+                "Timeout": 10,
+                "Memory": 1024
             }
         }
     }

@@ -2,11 +2,13 @@
     {
         "Meta": {
             "Name": "foo",
-            "Labels": null
+            "Labels": {
+                "snapshot": "yes"
+            }
         },
-        "Runtime": "",
+        "Runtime": "nodejs",
         "Checksum": "foo",
-        "SourceFilename": "",
+        "SourceFilename": "source.tar.gz",
         "AWS": {
             "Timeout": 3,
             "Memory": 256

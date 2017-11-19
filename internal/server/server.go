@@ -68,6 +68,7 @@ func (s *Server) PutFunction(ctx context.Context, input *state.Function) (*Uploa
 		return res, nil
 	}
 
+	input.SourceFilename = existing.SourceFilename
 	if err = s.updateFunctionConfiguration(ctx, input); err != nil {
 		return nil, errors.Wrap(err, "could not update function configuration")
 	}

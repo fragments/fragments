@@ -1,0 +1,18 @@
+/uploads/token: |
+    {
+        "Filename": "token",
+        "PreviousFilename": "",
+        "Function": {
+            "Meta": {
+                "Name": "foo",
+                "Labels": null
+            },
+            "Runtime": "nodejs",
+            "Checksum": "foo",
+            "SourceFilename": "",
+            "AWS": {
+                "Timeout": 3,
+                "Memory": 256
+            }
+        }
+    }

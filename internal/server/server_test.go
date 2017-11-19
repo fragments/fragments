@@ -23,9 +23,16 @@ func TestPutFunction(t *testing.T) {
 		kv := backend.NewTestKV()
 		ctx := context.Background()
 		err := state.PutModel(ctx, kv, state.ModelTypeFunction, &state.Function{
-			Meta:     state.Meta{Name: "foo"},
-			AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
-			Checksum: "foo",
+			Meta: state.Meta{
+				Name: "foo",
+				Labels: map[string]string{
+					"snapshot": "yes",
+				},
+			},
+			AWS:            &state.FunctionAWS{Timeout: 3, Memory: 256},
+			Checksum:       "foo",
+			Runtime:        "nodejs",
+			SourceFilename: "source.tar.gz",
 		})
 		require.NoError(t, err)
 		data := kv.Snapshot()
@@ -34,30 +41,10 @@ func TestPutFunction(t *testing.T) {
 		}
 	}
 
-	foo := &state.Function{
-		Meta:     state.Meta{Name: "foo"},
-		AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
-		Checksum: "foo",
-	}
-	bar := &state.Function{
-		Meta:     state.Meta{Name: "bar"},
-		AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
-		Checksum: "bar",
-	}
-	fooCode := &state.Function{
-		Meta:     state.Meta{Name: "foo"},
-		AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
-		Checksum: "foobar",
-	}
-	fooConfig := &state.Function{
-		Meta:     state.Meta{Name: "foo"},
-		AWS:      &state.FunctionAWS{Timeout: 3, Memory: 512},
-		Checksum: "foo",
-	}
-
 	tests := []struct {
 		TestName string
 		Function *state.Function
+		Snapshot string
 		Token    string
 		Response *UploadRequest
 		Error    bool
@@ -73,9 +60,14 @@ func TestPutFunction(t *testing.T) {
 			Error:    true,
 		},
 		{
-			TestName: "NoExisting",
-			Function: bar,
-			Token:    "token",
+			TestName: "CreateNew",
+			Function: &state.Function{
+				Meta:     state.Meta{Name: "foo"},
+				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
+				Runtime:  "nodejs",
+				Checksum: "foo",
+			},
+			Token: "token",
 			Response: &UploadRequest{
 				Token: "token",
 				URL:   "https://token",
@@ -83,8 +75,19 @@ func TestPutFunction(t *testing.T) {
 		},
 		{
 			TestName: "UpdateCode",
-			Function: fooCode,
-			Token:    "token",
+			Snapshot: snapshotFile,
+			Function: &state.Function{
+				Meta: state.Meta{
+					Name: "foo",
+					Labels: map[string]string{
+						"code": "updated",
+					},
+				},
+				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
+				Runtime:  "nodejs",
+				Checksum: "foobar",
+			},
+			Token: "token",
 			Response: &UploadRequest{
 				Token: "token",
 				URL:   "https://token",
@@ -92,12 +95,50 @@ func TestPutFunction(t *testing.T) {
 		},
 		{
 			TestName: "UpdateConfig",
-			Function: fooConfig,
+			Snapshot: snapshotFile,
+			Function: &state.Function{
+				Meta: state.Meta{
+					Name: "foo",
+					Labels: map[string]string{
+						"config": "updated",
+					},
+				},
+				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 512},
+				Runtime:  "nodejs",
+				Checksum: "foo",
+			},
 			Response: nil,
 		},
 		{
+			TestName: "UpdateCodeAndConfig",
+			Snapshot: snapshotFile,
+			Function: &state.Function{
+				Meta: state.Meta{
+					Name: "foo",
+					Labels: map[string]string{
+						"code":   "updated",
+						"config": "updated",
+					},
+				},
+				AWS:      &state.FunctionAWS{Timeout: 10, Memory: 1024},
+				Runtime:  "nodejs",
+				Checksum: "foobar",
+			},
+			Token: "token",
+			Response: &UploadRequest{
+				Token: "token",
+				URL:   "https://token",
+			},
+		},
+		{
 			TestName: "NoChange",
-			Function: foo,
+			Snapshot: snapshotFile,
+			Function: &state.Function{
+				Meta:     state.Meta{Name: "foo"},
+				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
+				Runtime:  "nodejs",
+				Checksum: "foo",
+			},
 			Response: nil,
 		},
 	}
@@ -106,7 +147,9 @@ func TestPutFunction(t *testing.T) {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
 			kv := backend.NewTestKV()
-			kv.LoadSnapshot(snapshotFile)
+			if test.Snapshot != "" {
+				kv.LoadSnapshot(snapshotFile)
+			}
 
 			mockSourceStore := &fsmocks.SourceTarget{}
 			mockSourceStore.
