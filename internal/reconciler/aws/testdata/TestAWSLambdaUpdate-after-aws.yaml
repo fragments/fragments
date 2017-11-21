@@ -1,0 +1,30 @@
+functions:
+  existing:
+    codesha256: 00a16f9000ec86dcaf445008c9aad397b0c9d1e831502ab08bfabefc0aebc634
+    codesize: 130
+    deadletterconfig: null
+    description: test fragments function
+    environment:
+      error: null
+      variables: {}
+    functionarn: arn:aws:lambda::us-east-1:123456789000:function:existing
+    functionname: existing
+    handler: index.handler
+    kmskeyarn: null
+    lastmodified: 2017-11-01T19:19:37.640+0000
+    masterarn: arn:aws:lambda::us-east-1:123456789000:function:existing
+    memorysize: 128
+    role: arn:aws:iam::123456789000:role/path/fragments-default-lambda-role
+    runtime: nodejs6.10
+    timeout: 3
+    tracingconfig:
+      mode: null
+    version: $LATEST
+    vpcconfig:
+      securitygroupids: []
+      subnetids: []
+      vpcid: null
+functiontags:
+  existing:
+    bar: bar
+    foo: foo

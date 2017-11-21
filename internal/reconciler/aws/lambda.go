@@ -42,6 +42,14 @@ type lambdaReconciler struct {
 	svcProvider serviceProvider
 }
 
+func (l *lambdaReconciler) pointer(name string) *state.ResPointer {
+	return &state.ResPointer{
+		InfraType:    state.InfrastructureTypeAWS,
+		ResourceType: lambdaResource,
+		Name:         name,
+	}
+}
+
 func newLambda(store store, source filestore.SourceReader, svcProvider serviceProvider) *lambdaReconciler {
 	return &lambdaReconciler{
 		store:       store,
@@ -51,7 +59,7 @@ func newLambda(store store, source filestore.SourceReader, svcProvider servicePr
 }
 
 func (l *lambdaReconciler) putFunction(ctx context.Context, input *state.Function) (*lambda.FunctionConfiguration, error) {
-	res := state.Resource(state.InfrastructureTypeAWS, lambdaResource, input.Meta.Name)
+	res := l.pointer(input.Meta.Name)
 	unlock, err := res.Lock(ctx, l.store)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not acquire lock for lambda")
@@ -92,7 +100,7 @@ func (l *lambdaReconciler) putFunction(ctx context.Context, input *state.Functio
 }
 
 func (l *lambdaReconciler) create(ctx context.Context, role *iam.Role, input *state.Function) (*lambda.FunctionConfiguration, error) {
-	res := state.Resource(state.InfrastructureTypeAWS, lambdaResource, input.Meta.Name)
+	res := l.pointer(input.Meta.Name)
 	svc, err := l.svcProvider.lambda()
 	if err != nil {
 		return nil, err
@@ -157,7 +165,7 @@ func (l *lambdaReconciler) update(ctx context.Context, existing *lambdaData, inp
 // lambdaData is updated in place with the new config. The updated
 // configuration is stored in the backend store before returning.
 func (l *lambdaReconciler) updateConfig(ctx context.Context, data *lambdaData, input *state.Function) error {
-	res := state.Resource(state.InfrastructureTypeAWS, lambdaResource, input.Meta.Name)
+	res := l.pointer(input.Meta.Name)
 	svc, err := l.svcProvider.lambda()
 	if err != nil {
 		return err
@@ -190,7 +198,7 @@ func (l *lambdaReconciler) updateConfig(ctx context.Context, data *lambdaData, i
 }
 
 func (l *lambdaReconciler) updateCode(ctx context.Context, data *lambdaData, input *state.Function) error {
-	res := state.Resource(state.InfrastructureTypeAWS, lambdaResource, input.Meta.Name)
+	res := l.pointer(input.Meta.Name)
 	svc, err := l.svcProvider.lambda()
 	if err != nil {
 		return err

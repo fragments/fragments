@@ -1,0 +1,14 @@
+/resources/aws/iam/existing: |
+    {
+        "data": {
+            "Arn": "arn:aws:iam::123456789000:role/path/existing",
+            "AssumeRolePolicyDocument": "doc",
+            "CreateDate": "2017-10-01T12:34:56Z",
+            "Description": "updated",
+            "Path": "/path/",
+            "RoleId": "ABCDEFGHIJKLMNOPQR123",
+            "RoleName": "existing"
+        },
+        "created": "2017-10-31T12:34:56+02:00",
+        "updated": "2017-10-31T12:34:56+02:00"
+    }

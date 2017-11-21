@@ -36,8 +36,16 @@ type iamRoleInput struct {
 	roleName                 string
 }
 
+func (i *iamReconciler) pointer(name string) *state.ResPointer {
+	return &state.ResPointer{
+		InfraType:    state.InfrastructureTypeAWS,
+		ResourceType: iamResource,
+		Name:         name,
+	}
+}
+
 func (i *iamReconciler) putRole(ctx context.Context, input *iamRoleInput) (*iam.Role, error) {
-	res := state.Resource(state.InfrastructureTypeAWS, iamResource, input.roleName)
+	res := i.pointer(input.roleName)
 	unlock, err := res.Lock(ctx, i.store)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not acquire lock for iam role")

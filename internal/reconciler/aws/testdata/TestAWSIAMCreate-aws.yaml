@@ -1,0 +1,9 @@
+roles:
+  test:
+    arn: arn:aws:iam::123456789000:role/path/test
+    assumerolepolicydocument: doc
+    createdate: 2017-10-31T12:34:56Z
+    description: description
+    path: /test/
+    roleid: ABCDEFGHIJKLMNOPQR123
+    rolename: test
