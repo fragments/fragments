@@ -1,7 +1,7 @@
-/models/deployment/foo: |
+/models/deployment/existing: |
     {
         "Meta": {
-            "Name": "foo",
+            "Name": "existing",
             "Labels": {
                 "foo": "bar"
             }

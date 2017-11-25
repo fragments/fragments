@@ -1,9 +1,0 @@
-/models/environment/foo: |
-    {
-        "Meta": {
-            "Name": "foo",
-            "Labels": null
-        },
-        "Infrastructure": "aws",
-        "AWS": null
-    }

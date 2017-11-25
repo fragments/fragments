@@ -1,19 +1,19 @@
-/models/environment/bar: |
+/models/environment/existing: |
     {
         "Meta": {
-            "Name": "bar",
-            "Labels": {
-                "foo": "bar"
-            }
+            "Name": "existing",
+            "Labels": null
         },
         "Infrastructure": "aws",
         "AWS": null
     }
-/models/environment/foo: |
+/models/environment/new: |
     {
         "Meta": {
-            "Name": "foo",
-            "Labels": null
+            "Name": "new",
+            "Labels": {
+                "new": "true"
+            }
         },
         "Infrastructure": "aws",
         "AWS": null

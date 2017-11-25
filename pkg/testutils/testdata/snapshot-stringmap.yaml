@@ -1,0 +1,7 @@
+a: bar
+b: foo
+c: <EMPTY>
+err: |
+    foo
+    bar
+    baz

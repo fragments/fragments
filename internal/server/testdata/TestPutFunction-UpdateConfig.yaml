@@ -1,14 +1,15 @@
-/models/function/foo: |
+/models/function/existing: |
     {
         "Meta": {
-            "Name": "foo",
+            "Name": "existing",
             "Labels": {
+                "code": "initial",
                 "config": "updated"
             }
         },
         "Runtime": "nodejs",
-        "Checksum": "foo",
-        "SourceFilename": "source.tar.gz",
+        "Checksum": "ABC",
+        "SourceFilename": "existing.tar.gz",
         "AWS": {
             "Timeout": 3,
             "Memory": 512

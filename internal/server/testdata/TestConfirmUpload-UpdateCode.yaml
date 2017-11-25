@@ -1,7 +1,7 @@
-/models/function/bar: |
+/models/function/existing: |
     {
         "Meta": {
-            "Name": "bar",
+            "Name": "existing",
             "Labels": null
         },
         "Runtime": "go",
@@ -10,38 +10,6 @@
         "AWS": {
             "Timeout": 3,
             "Memory": 256
-        }
-    }
-/models/function/foo: |
-    {
-        "Meta": {
-            "Name": "foo",
-            "Labels": null
-        },
-        "Runtime": "go",
-        "Checksum": "foo",
-        "SourceFilename": "previous.tar.gz",
-        "AWS": {
-            "Timeout": 3,
-            "Memory": 256
-        }
-    }
-/uploads/foo-config: |
-    {
-        "Filename": "foo.tar.gz",
-        "PreviousFilename": "",
-        "Function": {
-            "Meta": {
-                "Name": "foo",
-                "Labels": null
-            },
-            "Runtime": "nodejs",
-            "Checksum": "foo",
-            "SourceFilename": "",
-            "AWS": {
-                "Timeout": 3,
-                "Memory": 1024
-            }
         }
     }
 /uploads/new: |
@@ -59,6 +27,24 @@
             "AWS": {
                 "Timeout": 3,
                 "Memory": 256
+            }
+        }
+    }
+/uploads/update-config: |
+    {
+        "Filename": "foo.tar.gz",
+        "PreviousFilename": "",
+        "Function": {
+            "Meta": {
+                "Name": "existing",
+                "Labels": null
+            },
+            "Runtime": "nodejs",
+            "Checksum": "foo",
+            "SourceFilename": "",
+            "AWS": {
+                "Timeout": 5,
+                "Memory": 1024
             }
         }
     }

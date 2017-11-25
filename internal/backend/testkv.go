@@ -1,18 +1,11 @@
 package backend
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"io/ioutil"
-	"log"
-	"sort"
 	"strings"
 	"sync"
-	"unicode"
 
 	"github.com/pkg/errors"
-	yaml "gopkg.in/yaml.v2"
 )
 
 // TestKV keeps data in memory. It should only be used for unit tests.
@@ -121,79 +114,17 @@ func (t *TestKV) Lock(ctx context.Context, key string) (func(), error) {
 	return locker.Unlock, nil
 }
 
-// Snapshot returns a json encoded snapshot of the current state of the test
-// backend. Panics if an error occurs.
-// Nested json structures are pretty printed so they don't exactly match what's
-// in the store. However, this is useful for test snapshots, which is the
-// primary purpose of this anwyay.  The output is yaml compatible.
-func (t *TestKV) Snapshot() string {
+// Copy returns a copy of the TestKV, including its data. This is meant for
+// unit tests, where a single instance of the TestKV is created, and copies of
+// it are mutated.
+func (t *TestKV) Copy() *TestKV {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	var buf bytes.Buffer
-
-	// Get list of keys so we can iterate over the keys in a determenistic
-	// order
-	keys := []string{}
-	for k := range t.Data {
-		keys = append(keys, k)
+	newData := make(map[string]string)
+	for k, v := range t.Data {
+		newData[k] = v
 	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		buf.WriteString(k)
-		buf.WriteString(": ")
-
-		processed := false
-		v := t.Data[k]
-
-		// Try pretty printing json
-		var pretty bytes.Buffer
-		err := json.Indent(&pretty, []byte(v), "    ", "    ")
-		if err == nil {
-			buf.WriteString("|\n    ")
-			buf.Write(pretty.Bytes())
-			processed = true
-		}
-
-		if !processed && strings.Contains(v, "\n") {
-			buf.WriteString("|\n    ")
-			buf.WriteString(strings.Join(strings.Split(v, "\n"), "\n    "))
-			processed = true
-		}
-
-		if !processed {
-			buf.WriteString(v)
-		}
-
-		buf.WriteString("\n")
-	}
-
-	return strings.TrimFunc(buf.String(), unicode.IsSpace) + "\n"
-}
-
-// LoadSnapshot loads a snapshot from disk and sets the state of the memory
-// key-value store. This can be used for tests to set the initial state.
-// Panics if the snapshot fails to load.
-func (t *TestKV) LoadSnapshot(filename string) {
-	t.mu.Lock()
-	defer t.mu.Unlock()
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		log.Panic(err)
-	}
-	temp := make(map[string]string)
-	if err := yaml.Unmarshal(data, &temp); err != nil {
-		log.Panic(errors.Wrapf(err, "could not unmarshal snapshot"))
-	}
-	for k, v := range temp {
-		if json.Valid([]byte(v)) {
-			// Try to recompress json which was pretty printed in snapshot
-			var buf bytes.Buffer
-			if err := json.Compact(&buf, []byte(v)); err == nil {
-				t.Data[k] = buf.String()
-				continue
-			}
-		}
-		t.Data[k] = strings.TrimFunc(v, unicode.IsSpace)
+	return &TestKV{
+		Data: newData,
 	}
 }

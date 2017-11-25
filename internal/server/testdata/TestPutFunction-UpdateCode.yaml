@@ -1,32 +1,34 @@
-/models/function/foo: |
+/models/function/existing: |
     {
         "Meta": {
-            "Name": "foo",
+            "Name": "existing",
             "Labels": {
-                "snapshot": "yes"
+                "code": "initial",
+                "config": "initial"
             }
         },
         "Runtime": "nodejs",
-        "Checksum": "foo",
-        "SourceFilename": "source.tar.gz",
+        "Checksum": "ABC",
+        "SourceFilename": "existing.tar.gz",
         "AWS": {
             "Timeout": 3,
             "Memory": 256
         }
     }
-/uploads/token: |
+/uploads/codetoken: |
     {
-        "Filename": "token",
-        "PreviousFilename": "source.tar.gz",
+        "Filename": "codetoken",
+        "PreviousFilename": "existing.tar.gz",
         "Function": {
             "Meta": {
-                "Name": "foo",
+                "Name": "existing",
                 "Labels": {
-                    "code": "updated"
+                    "code": "updated",
+                    "config": "initial"
                 }
             },
             "Runtime": "nodejs",
-            "Checksum": "foobar",
+            "Checksum": "UPDATED",
             "SourceFilename": "",
             "AWS": {
                 "Timeout": 3,

@@ -3,38 +3,30 @@ package state
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
-	"github.com/fragments/fragments/pkg/snapshot"
+	"github.com/fragments/fragments/pkg/testutils"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDeletePendingUpload(t *testing.T) {
-	snapshotFile := "testdata/TestDeletePendingUpload.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := PutPendingUpload(ctx, kv, "foo", &PendingUpload{
-			Filename: "foo.tar.gz",
-			Function: &Function{
-				Meta: Meta{Name: "foo"},
-			},
-		})
-		require.NoError(t, err)
-		err = PutPendingUpload(ctx, kv, "bar", &PendingUpload{
-			Filename: "bar.tar.gz",
-			Function: &Function{
-				Meta: Meta{Name: "foo"},
-			},
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
+	initial := backend.NewTestKV()
+	ctx := context.Background()
+	err := PutPendingUpload(ctx, initial, "foo", &PendingUpload{
+		Filename: "foo.tar.gz",
+		Function: &Function{
+			Meta: Meta{Name: "foo"},
+		},
+	})
+	require.NoError(t, err)
+	err = PutPendingUpload(ctx, initial, "bar", &PendingUpload{
+		Filename: "bar.tar.gz",
+		Function: &Function{
+			Meta: Meta{Name: "foo"},
+		},
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -58,9 +50,8 @@ func TestDeletePendingUpload(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
-			kv := backend.NewTestKV()
-			kv.LoadSnapshot(snapshotFile)
 			ctx := context.Background()
+			kv := initial.Copy()
 			err := DeletePendingUpload(ctx, kv, test.Token)
 			if test.Error {
 				require.Error(t, err)
@@ -68,7 +59,11 @@ func TestDeletePendingUpload(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestDeletePendingUpload-%s.yaml", test.TestName), *update)
+			testutils.AssertGolden(
+				t,
+				testutils.SnapshotJSONMap(kv.Data),
+				fmt.Sprintf("testdata/TestDeletePendingUpload-%s.yaml", test.TestName),
+			)
 		})
 	}
 }

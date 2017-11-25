@@ -1,14 +1,34 @@
-/uploads/token: |
+/models/function/existing: |
     {
-        "Filename": "token",
+        "Meta": {
+            "Name": "existing",
+            "Labels": {
+                "code": "initial",
+                "config": "initial"
+            }
+        },
+        "Runtime": "nodejs",
+        "Checksum": "ABC",
+        "SourceFilename": "existing.tar.gz",
+        "AWS": {
+            "Timeout": 3,
+            "Memory": 256
+        }
+    }
+/uploads/newtoken: |
+    {
+        "Filename": "newtoken",
         "PreviousFilename": "",
         "Function": {
             "Meta": {
-                "Name": "foo",
-                "Labels": null
+                "Name": "new",
+                "Labels": {
+                    "code": "new",
+                    "config": "new"
+                }
             },
             "Runtime": "nodejs",
-            "Checksum": "foo",
+            "Checksum": "new",
             "SourceFilename": "",
             "AWS": {
                 "Timeout": 3,

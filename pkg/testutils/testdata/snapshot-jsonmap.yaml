@@ -1,0 +1,17 @@
+a: |
+    {
+        "foo": "foo",
+        "bar": {
+            "baz": 123
+        }
+    }
+b: |
+    {
+        "a": "a",
+        "b": "b",
+        "c": "c"
+    }
+c: |
+    <EMPTY>
+err: |
+    <ERROR: invalid character 'i' looking for beginning of object key string>

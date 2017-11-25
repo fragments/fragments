@@ -1,33 +1,15 @@
-/models/function/foo: |
+/models/function/existing: |
     {
         "Meta": {
-            "Name": "foo",
+            "Name": "existing",
             "Labels": null
         },
         "Runtime": "nodejs",
         "Checksum": "foo",
         "SourceFilename": "foo.tar.gz",
         "AWS": {
-            "Timeout": 3,
+            "Timeout": 5,
             "Memory": 1024
-        }
-    }
-/uploads/foo-code: |
-    {
-        "Filename": "bar.tar.gz",
-        "PreviousFilename": "",
-        "Function": {
-            "Meta": {
-                "Name": "bar",
-                "Labels": null
-            },
-            "Runtime": "go",
-            "Checksum": "updated",
-            "SourceFilename": "",
-            "AWS": {
-                "Timeout": 3,
-                "Memory": 256
-            }
         }
     }
 /uploads/new: |
@@ -41,6 +23,24 @@
             },
             "Runtime": "go",
             "Checksum": "new",
+            "SourceFilename": "",
+            "AWS": {
+                "Timeout": 3,
+                "Memory": 256
+            }
+        }
+    }
+/uploads/update-code: |
+    {
+        "Filename": "bar.tar.gz",
+        "PreviousFilename": "",
+        "Function": {
+            "Meta": {
+                "Name": "existing",
+                "Labels": null
+            },
+            "Runtime": "go",
+            "Checksum": "updated",
             "SourceFilename": "",
             "AWS": {
                 "Timeout": 3,

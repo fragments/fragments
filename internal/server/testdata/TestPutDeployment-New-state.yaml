@@ -1,7 +1,16 @@
-/models/deployment/bar: |
+/models/deployment/existing: |
     {
         "Meta": {
-            "Name": "bar",
+            "Name": "existing",
+            "Labels": null
+        },
+        "EnvironmentLabels": {},
+        "FunctionLabels": {}
+    }
+/models/deployment/new: |
+    {
+        "Meta": {
+            "Name": "new",
             "Labels": null
         },
         "EnvironmentLabels": {
@@ -10,13 +19,4 @@
         "FunctionLabels": {
             "bar": "bar"
         }
-    }
-/models/deployment/foo: |
-    {
-        "Meta": {
-            "Name": "foo",
-            "Labels": null
-        },
-        "EnvironmentLabels": {},
-        "FunctionLabels": {}
     }

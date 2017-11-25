@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
-	"github.com/fragments/fragments/pkg/snapshot"
+	"github.com/fragments/fragments/pkg/testutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -42,7 +42,11 @@ func TestPutUserCredentials(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestPutUserCredentials-%s.yaml", test.TestName), *update)
+			testutils.AssertGolden(
+				t,
+				testutils.SnapshotStringMap(kv.Data),
+				fmt.Sprintf("testdata/TestPutUserCredentials-%s.yaml", test.TestName),
+			)
 		})
 	}
 }

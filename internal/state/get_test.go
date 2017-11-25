@@ -2,7 +2,6 @@ package state
 
 import (
 	"context"
-	"io/ioutil"
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
@@ -11,23 +10,16 @@ import (
 )
 
 func TestGetFunction(t *testing.T) {
-	snapshotFile := "testdata/TestGetFunction.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := PutModel(ctx, kv, ModelTypeFunction, &Function{
-			Meta: Meta{
-				Name: "foo",
-			},
-			Runtime:  "go",
-			Checksum: "abc",
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
+	initial := backend.NewTestKV()
+	ctx := context.Background()
+	err := PutModel(ctx, initial, ModelTypeFunction, &Function{
+		Meta: Meta{
+			Name: "existing",
+		},
+		Runtime:  "go",
+		Checksum: "abc",
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -43,16 +35,16 @@ func TestGetFunction(t *testing.T) {
 		},
 		{
 			TestName: "NotFound",
-			Name:     "bar",
+			Name:     "nonexisting",
 			Expected: nil,
 			Error:    false,
 		},
 		{
 			TestName: "Found",
-			Name:     "foo",
+			Name:     "existing",
 			Expected: &Function{
 				Meta: Meta{
-					Name: "foo",
+					Name: "existing",
 				},
 				Runtime:  "go",
 				Checksum: "abc",
@@ -64,8 +56,7 @@ func TestGetFunction(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV()
-			kv.LoadSnapshot(snapshotFile)
+			kv := initial.Copy()
 			actual, err := GetFunction(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)
@@ -79,24 +70,17 @@ func TestGetFunction(t *testing.T) {
 }
 
 func TestGetPendingUpload(t *testing.T) {
-	snapshotFile := "testdata/TestGetPendingUpload.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := PutPendingUpload(ctx, kv, "token", &PendingUpload{
-			Filename: "foo.tar.gz",
-			Function: &Function{
-				Meta: Meta{
-					Name: "foo",
-				},
+	initial := backend.NewTestKV()
+	ctx := context.Background()
+	err := PutPendingUpload(ctx, initial, "existing", &PendingUpload{
+		Filename: "existing.tar.gz",
+		Function: &Function{
+			Meta: Meta{
+				Name: "existingfunc",
 			},
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
+		},
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -112,18 +96,18 @@ func TestGetPendingUpload(t *testing.T) {
 		},
 		{
 			TestName: "NotFound",
-			Token:    "baz",
+			Token:    "nonexisting",
 			Expected: nil,
 			Error:    false,
 		},
 		{
 			TestName: "Found",
-			Token:    "token",
+			Token:    "existing",
 			Expected: &PendingUpload{
-				Filename: "foo.tar.gz",
+				Filename: "existing.tar.gz",
 				Function: &Function{
 					Meta: Meta{
-						Name: "foo",
+						Name: "existingfunc",
 					},
 				},
 			},
@@ -134,8 +118,7 @@ func TestGetPendingUpload(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV()
-			kv.LoadSnapshot(snapshotFile)
+			kv := initial.Copy()
 			actual, err := GetPendingUpload(ctx, kv, test.Token)
 			if test.Error {
 				require.Error(t, err)
@@ -149,22 +132,15 @@ func TestGetPendingUpload(t *testing.T) {
 }
 
 func TestGetEnvironment(t *testing.T) {
-	snapshotFile := "testdata/TestGetEnvironment.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := PutModel(ctx, kv, ModelTypeEnvironment, &Environment{
-			Meta: Meta{
-				Name: "foo",
-			},
-			Infrastructure: InfrastructureTypeAWS,
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
+	initial := backend.NewTestKV()
+	ctx := context.Background()
+	err := PutModel(ctx, initial, ModelTypeEnvironment, &Environment{
+		Meta: Meta{
+			Name: "existing",
+		},
+		Infrastructure: InfrastructureTypeAWS,
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -180,16 +156,16 @@ func TestGetEnvironment(t *testing.T) {
 		},
 		{
 			TestName: "NotFound",
-			Name:     "bar",
+			Name:     "nonexisting",
 			Expected: nil,
 			Error:    false,
 		},
 		{
 			TestName: "Found",
-			Name:     "foo",
+			Name:     "existing",
 			Expected: &Environment{
 				Meta: Meta{
-					Name: "foo",
+					Name: "existing",
 				},
 				Infrastructure: InfrastructureTypeAWS,
 			},
@@ -200,8 +176,7 @@ func TestGetEnvironment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV()
-			kv.LoadSnapshot(snapshotFile)
+			kv := initial.Copy()
 			actual, err := GetEnvironment(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)
@@ -215,27 +190,20 @@ func TestGetEnvironment(t *testing.T) {
 }
 
 func TestGetDeployment(t *testing.T) {
-	snapshotFile := "testdata/TestGetDeployment.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := PutModel(ctx, kv, ModelTypeDeployment, &Deployment{
-			Meta: Meta{
-				Name: "foo",
-			},
-			EnvironmentLabels: map[string]string{
-				"foo": "foo",
-			},
-			FunctionLabels: map[string]string{
-				"bar": "bar",
-			},
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
+	initial := backend.NewTestKV()
+	ctx := context.Background()
+	err := PutModel(ctx, initial, ModelTypeDeployment, &Deployment{
+		Meta: Meta{
+			Name: "existing",
+		},
+		EnvironmentLabels: map[string]string{
+			"foo": "foo",
+		},
+		FunctionLabels: map[string]string{
+			"bar": "bar",
+		},
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -251,16 +219,16 @@ func TestGetDeployment(t *testing.T) {
 		},
 		{
 			TestName: "NotFound",
-			Name:     "bar",
+			Name:     "nonexisting",
 			Expected: nil,
 			Error:    false,
 		},
 		{
 			TestName: "Found",
-			Name:     "foo",
+			Name:     "existing",
 			Expected: &Deployment{
 				Meta: Meta{
-					Name: "foo",
+					Name: "existing",
 				},
 				EnvironmentLabels: map[string]string{
 					"foo": "foo",
@@ -276,8 +244,7 @@ func TestGetDeployment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV()
-			kv.LoadSnapshot(snapshotFile)
+			kv := initial.Copy()
 			actual, err := GetDeployment(ctx, kv, test.Name)
 			if test.Error {
 				require.Error(t, err)

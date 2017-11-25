@@ -1,7 +1,7 @@
-/models/function/foo: |
+/models/function/existing: |
     {
         "Meta": {
-            "Name": "foo",
+            "Name": "existing",
             "Labels": null
         },
         "Runtime": "go",
@@ -26,13 +26,13 @@
             "Memory": 256
         }
     }
-/uploads/foo-code: |
+/uploads/update-code: |
     {
         "Filename": "bar.tar.gz",
         "PreviousFilename": "",
         "Function": {
             "Meta": {
-                "Name": "bar",
+                "Name": "existing",
                 "Labels": null
             },
             "Runtime": "go",
@@ -44,20 +44,20 @@
             }
         }
     }
-/uploads/foo-config: |
+/uploads/update-config: |
     {
         "Filename": "foo.tar.gz",
         "PreviousFilename": "",
         "Function": {
             "Meta": {
-                "Name": "foo",
+                "Name": "existing",
                 "Labels": null
             },
             "Runtime": "nodejs",
             "Checksum": "foo",
             "SourceFilename": "",
             "AWS": {
-                "Timeout": 3,
+                "Timeout": 5,
                 "Memory": 1024
             }
         }

@@ -2,7 +2,6 @@ package state
 
 import (
 	"context"
-	"io/ioutil"
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
@@ -11,45 +10,34 @@ import (
 )
 
 func TestListDeployments(t *testing.T) {
-	snapshotFile := "testdata/TestListDeployments.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := PutModel(ctx, kv, ModelTypeDeployment, &Deployment{
-			Meta: Meta{
-				Name: "foo",
-				Labels: map[string]string{
-					"foo": "foo",
-					"bar": "bar",
-				},
-			},
-		})
-		require.NoError(t, err)
-		err = PutModel(ctx, kv, ModelTypeDeployment, &Deployment{
-			Meta: Meta{
-				Name: "bar",
-				Labels: map[string]string{
-					"bar": "bar",
-					"baz": "baz",
-				},
-			},
-		})
-		require.NoError(t, err)
-		err = PutModel(ctx, kv, ModelTypeDeployment, &Deployment{
-			Meta: Meta{
-				Name: "baz",
-			},
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	ctx := context.Background()
 	kv := backend.NewTestKV()
-	kv.LoadSnapshot(snapshotFile)
+	ctx := context.Background()
+	err := PutModel(ctx, kv, ModelTypeDeployment, &Deployment{
+		Meta: Meta{
+			Name: "foo",
+			Labels: map[string]string{
+				"foo": "foo",
+				"bar": "bar",
+			},
+		},
+	})
+	require.NoError(t, err)
+	err = PutModel(ctx, kv, ModelTypeDeployment, &Deployment{
+		Meta: Meta{
+			Name: "bar",
+			Labels: map[string]string{
+				"bar": "bar",
+				"baz": "baz",
+			},
+		},
+	})
+	require.NoError(t, err)
+	err = PutModel(ctx, kv, ModelTypeDeployment, &Deployment{
+		Meta: Meta{
+			Name: "baz",
+		},
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -110,45 +98,34 @@ func TestListDeployments(t *testing.T) {
 }
 
 func TestListEnvironments(t *testing.T) {
-	snapshotFile := "testdata/TestListEnvironments.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := PutModel(ctx, kv, ModelTypeEnvironment, &Environment{
-			Meta: Meta{
-				Name: "foo",
-				Labels: map[string]string{
-					"foo": "foo",
-					"bar": "bar",
-				},
-			},
-		})
-		require.NoError(t, err)
-		err = PutModel(ctx, kv, ModelTypeEnvironment, &Environment{
-			Meta: Meta{
-				Name: "bar",
-				Labels: map[string]string{
-					"bar": "bar",
-					"baz": "baz",
-				},
-			},
-		})
-		require.NoError(t, err)
-		err = PutModel(ctx, kv, ModelTypeEnvironment, &Environment{
-			Meta: Meta{
-				Name: "baz",
-			},
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	ctx := context.Background()
 	kv := backend.NewTestKV()
-	kv.LoadSnapshot(snapshotFile)
+	ctx := context.Background()
+	err := PutModel(ctx, kv, ModelTypeEnvironment, &Environment{
+		Meta: Meta{
+			Name: "foo",
+			Labels: map[string]string{
+				"foo": "foo",
+				"bar": "bar",
+			},
+		},
+	})
+	require.NoError(t, err)
+	err = PutModel(ctx, kv, ModelTypeEnvironment, &Environment{
+		Meta: Meta{
+			Name: "bar",
+			Labels: map[string]string{
+				"bar": "bar",
+				"baz": "baz",
+			},
+		},
+	})
+	require.NoError(t, err)
+	err = PutModel(ctx, kv, ModelTypeEnvironment, &Environment{
+		Meta: Meta{
+			Name: "baz",
+		},
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -209,45 +186,34 @@ func TestListEnvironments(t *testing.T) {
 }
 
 func TestListFunctions(t *testing.T) {
-	snapshotFile := "testdata/TestListFunctions.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := PutModel(ctx, kv, ModelTypeFunction, &Function{
-			Meta: Meta{
-				Name: "foo",
-				Labels: map[string]string{
-					"foo": "foo",
-					"bar": "bar",
-				},
-			},
-		})
-		require.NoError(t, err)
-		err = PutModel(ctx, kv, ModelTypeFunction, &Function{
-			Meta: Meta{
-				Name: "bar",
-				Labels: map[string]string{
-					"bar": "bar",
-					"baz": "baz",
-				},
-			},
-		})
-		require.NoError(t, err)
-		err = PutModel(ctx, kv, ModelTypeFunction, &Function{
-			Meta: Meta{
-				Name: "baz",
-			},
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	ctx := context.Background()
 	kv := backend.NewTestKV()
-	kv.LoadSnapshot(snapshotFile)
+	ctx := context.Background()
+	err := PutModel(ctx, kv, ModelTypeFunction, &Function{
+		Meta: Meta{
+			Name: "foo",
+			Labels: map[string]string{
+				"foo": "foo",
+				"bar": "bar",
+			},
+		},
+	})
+	require.NoError(t, err)
+	err = PutModel(ctx, kv, ModelTypeFunction, &Function{
+		Meta: Meta{
+			Name: "bar",
+			Labels: map[string]string{
+				"bar": "bar",
+				"baz": "baz",
+			},
+		},
+	})
+	require.NoError(t, err)
+	err = PutModel(ctx, kv, ModelTypeFunction, &Function{
+		Meta: Meta{
+			Name: "baz",
+		},
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string

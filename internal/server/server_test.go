@@ -2,49 +2,38 @@ package server
 
 import (
 	"context"
-	"flag"
 	"fmt"
-	"io/ioutil"
 	"testing"
 
 	"github.com/fragments/fragments/internal/backend"
 	fsmocks "github.com/fragments/fragments/internal/filestore/mocks"
 	"github.com/fragments/fragments/internal/state"
-	"github.com/fragments/fragments/pkg/snapshot"
+	"github.com/fragments/fragments/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var update = flag.Bool("test.update", false, "update test snapshots")
-
 func TestPutFunction(t *testing.T) {
-	snapshotFile := "testdata/TestPutFunction.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := state.PutModel(ctx, kv, state.ModelTypeFunction, &state.Function{
-			Meta: state.Meta{
-				Name: "foo",
-				Labels: map[string]string{
-					"snapshot": "yes",
-				},
+	initial := backend.NewTestKV()
+	ctx := context.Background()
+	err := state.PutModel(ctx, initial, state.ModelTypeFunction, &state.Function{
+		Meta: state.Meta{
+			Name: "existing",
+			Labels: map[string]string{
+				"code":   "initial",
+				"config": "initial",
 			},
-			AWS:            &state.FunctionAWS{Timeout: 3, Memory: 256},
-			Checksum:       "foo",
-			Runtime:        "nodejs",
-			SourceFilename: "source.tar.gz",
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
+		},
+		AWS:            &state.FunctionAWS{Timeout: 3, Memory: 256},
+		Checksum:       "ABC",
+		Runtime:        "nodejs",
+		SourceFilename: "existing.tar.gz",
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
 		Function *state.Function
-		Snapshot string
 		Token    string
 		Response *UploadRequest
 		Error    bool
@@ -62,59 +51,64 @@ func TestPutFunction(t *testing.T) {
 		{
 			TestName: "CreateNew",
 			Function: &state.Function{
-				Meta:     state.Meta{Name: "foo"},
+				Meta: state.Meta{
+					Name: "new",
+					Labels: map[string]string{
+						"code":   "new",
+						"config": "new",
+					},
+				},
 				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
 				Runtime:  "nodejs",
-				Checksum: "foo",
+				Checksum: "new",
 			},
-			Token: "token",
+			Token: "newtoken",
 			Response: &UploadRequest{
-				Token: "token",
-				URL:   "https://token",
+				Token: "newtoken",
+				URL:   "https://newtoken",
 			},
 		},
 		{
 			TestName: "UpdateCode",
-			Snapshot: snapshotFile,
 			Function: &state.Function{
 				Meta: state.Meta{
-					Name: "foo",
+					Name: "existing",
 					Labels: map[string]string{
-						"code": "updated",
+						"code":   "updated",
+						"config": "initial",
 					},
 				},
 				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
 				Runtime:  "nodejs",
-				Checksum: "foobar",
+				Checksum: "UPDATED",
 			},
-			Token: "token",
+			Token: "codetoken",
 			Response: &UploadRequest{
-				Token: "token",
-				URL:   "https://token",
+				Token: "codetoken",
+				URL:   "https://codetoken",
 			},
 		},
 		{
 			TestName: "UpdateConfig",
-			Snapshot: snapshotFile,
 			Function: &state.Function{
 				Meta: state.Meta{
-					Name: "foo",
+					Name: "existing",
 					Labels: map[string]string{
 						"config": "updated",
+						"code":   "initial",
 					},
 				},
 				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 512},
 				Runtime:  "nodejs",
-				Checksum: "foo",
+				Checksum: "ABC",
 			},
 			Response: nil,
 		},
 		{
 			TestName: "UpdateCodeAndConfig",
-			Snapshot: snapshotFile,
 			Function: &state.Function{
 				Meta: state.Meta{
-					Name: "foo",
+					Name: "existing",
 					Labels: map[string]string{
 						"code":   "updated",
 						"config": "updated",
@@ -122,7 +116,7 @@ func TestPutFunction(t *testing.T) {
 				},
 				AWS:      &state.FunctionAWS{Timeout: 10, Memory: 1024},
 				Runtime:  "nodejs",
-				Checksum: "foobar",
+				Checksum: "ABC123",
 			},
 			Token: "token",
 			Response: &UploadRequest{
@@ -132,12 +126,11 @@ func TestPutFunction(t *testing.T) {
 		},
 		{
 			TestName: "NoChange",
-			Snapshot: snapshotFile,
 			Function: &state.Function{
-				Meta:     state.Meta{Name: "foo"},
+				Meta:     state.Meta{Name: "existing"},
 				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
 				Runtime:  "nodejs",
-				Checksum: "foo",
+				Checksum: "ABC",
 			},
 			Response: nil,
 		},
@@ -146,15 +139,13 @@ func TestPutFunction(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV()
-			if test.Snapshot != "" {
-				kv.LoadSnapshot(snapshotFile)
-			}
 
 			mockSourceStore := &fsmocks.SourceTarget{}
 			mockSourceStore.
 				On("NewUploadURL", test.Token).
 				Return(fmt.Sprintf("https://%s", test.Token), nil)
+
+			kv := initial.Copy()
 
 			s := &Server{
 				StateStore:    kv,
@@ -171,59 +162,56 @@ func TestPutFunction(t *testing.T) {
 			require.NoError(t, err)
 			assert.Equal(t, test.Response, res)
 
-			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestPutFunction-%s.yaml", test.TestName), *update)
+			testutils.AssertGolden(
+				t,
+				testutils.SnapshotJSONMap(kv.Data),
+				fmt.Sprintf("testdata/TestPutFunction-%s.yaml", test.TestName),
+			)
 		})
 	}
 }
 
 func TestConfirmUpload(t *testing.T) {
-	snapshotFile := "testdata/TestConfirmUpload.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := state.PutModel(ctx, kv, state.ModelTypeFunction, &state.Function{
-			Meta:           state.Meta{Name: "foo"},
-			AWS:            &state.FunctionAWS{Timeout: 3, Memory: 256},
-			Runtime:        "go",
-			SourceFilename: "previous.tar.gz",
-			Checksum:       "foo",
-		})
-		require.NoError(t, err)
-		err = state.PutPendingUpload(ctx, kv, "new", &state.PendingUpload{
-			Filename: "new.tar.gz",
-			Function: &state.Function{
-				Meta:     state.Meta{Name: "new"},
-				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
-				Runtime:  "go",
-				Checksum: "new",
-			},
-		})
-		require.NoError(t, err)
-		err = state.PutPendingUpload(ctx, kv, "foo-config", &state.PendingUpload{
-			Filename: "foo.tar.gz",
-			Function: &state.Function{
-				Meta:     state.Meta{Name: "foo"},
-				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 1024},
-				Runtime:  "nodejs",
-				Checksum: "foo",
-			},
-		})
-		require.NoError(t, err)
-		err = state.PutPendingUpload(ctx, kv, "foo-code", &state.PendingUpload{
-			Filename: "bar.tar.gz",
-			Function: &state.Function{
-				Meta:     state.Meta{Name: "bar"},
-				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
-				Runtime:  "go",
-				Checksum: "updated",
-			},
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
+	initial := backend.NewTestKV()
+	ctx := context.Background()
+	err := state.PutModel(ctx, initial, state.ModelTypeFunction, &state.Function{
+		Meta:           state.Meta{Name: "existing"},
+		AWS:            &state.FunctionAWS{Timeout: 3, Memory: 256},
+		Runtime:        "go",
+		SourceFilename: "previous.tar.gz",
+		Checksum:       "foo",
+	})
+	require.NoError(t, err)
+	err = state.PutPendingUpload(ctx, initial, "new", &state.PendingUpload{
+		Filename: "new.tar.gz",
+		Function: &state.Function{
+			Meta:     state.Meta{Name: "new"},
+			AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
+			Runtime:  "go",
+			Checksum: "new",
+		},
+	})
+	require.NoError(t, err)
+	err = state.PutPendingUpload(ctx, initial, "update-config", &state.PendingUpload{
+		Filename: "foo.tar.gz",
+		Function: &state.Function{
+			Meta:     state.Meta{Name: "existing"},
+			AWS:      &state.FunctionAWS{Timeout: 5, Memory: 1024},
+			Runtime:  "nodejs",
+			Checksum: "foo",
+		},
+	})
+	require.NoError(t, err)
+	err = state.PutPendingUpload(ctx, initial, "update-code", &state.PendingUpload{
+		Filename: "bar.tar.gz",
+		Function: &state.Function{
+			Meta:     state.Meta{Name: "existing"},
+			AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
+			Runtime:  "go",
+			Checksum: "updated",
+		},
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -246,24 +234,24 @@ func TestConfirmUpload(t *testing.T) {
 		},
 		{
 			TestName: "UpdatedConfig",
-			Token:    "foo-config",
+			Token:    "update-config",
 		},
 		{
 			TestName: "UpdateCode",
-			Token:    "foo-code",
+			Token:    "update-code",
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV()
-			kv.LoadSnapshot(snapshotFile)
 
 			mockSourceStore := &fsmocks.SourceTarget{}
 			mockSourceStore.
 				On("Persist", ctx, test.Token).
 				Return(nil)
+
+			kv := initial.Copy()
 
 			s := &Server{
 				StateStore:    kv,
@@ -280,26 +268,23 @@ func TestConfirmUpload(t *testing.T) {
 			require.NoError(t, err)
 			mockSourceStore.AssertExpectations(t)
 
-			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestConfirmUpload-%s.yaml", test.TestName), *update)
+			testutils.AssertGolden(
+				t,
+				testutils.SnapshotJSONMap(kv.Data),
+				fmt.Sprintf("testdata/TestConfirmUpload-%s.yaml", test.TestName),
+			)
 		})
 	}
 }
 
 func TestCreateEnvironment(t *testing.T) {
-	snapshotFile := "testdata/TestCreateEnvironment.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := state.PutModel(ctx, kv, state.ModelTypeEnvironment, &state.Environment{
-			Meta:           state.Meta{Name: "foo"},
-			Infrastructure: state.InfrastructureTypeAWS,
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
+	initial := backend.NewTestKV()
+	ctx := context.Background()
+	err := state.PutModel(ctx, initial, state.ModelTypeEnvironment, &state.Environment{
+		Meta:           state.Meta{Name: "existing"},
+		Infrastructure: state.InfrastructureTypeAWS,
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -319,16 +304,16 @@ func TestCreateEnvironment(t *testing.T) {
 		{
 			TestName: "Existing",
 			Input: &EnvironmentInput{
-				Name: "foo",
+				Name: "existing",
 			},
 			Error: true,
 		},
 		{
 			TestName: "New",
 			Input: &EnvironmentInput{
-				Name: "bar",
+				Name: "new",
 				Labels: map[string]string{
-					"foo": "bar",
+					"new": "true",
 				},
 				Infrastructure: state.InfrastructureTypeAWS,
 				Username:       "user",
@@ -340,9 +325,8 @@ func TestCreateEnvironment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV()
-			kv.LoadSnapshot(snapshotFile)
 
+			kv := initial.Copy()
 			secretsKV := backend.NewTestKV()
 
 			s := &Server{
@@ -360,28 +344,29 @@ func TestCreateEnvironment(t *testing.T) {
 
 			require.NoError(t, err)
 
-			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestCreateEnvironment-%s-state.yaml", test.TestName), *update)
-			snapshot.AssertString(t, secretsKV.Snapshot(), fmt.Sprintf("testdata/TestCreateEnvironment-%s-secrets.yaml", test.TestName), *update)
+			testutils.AssertGolden(
+				t,
+				testutils.SnapshotJSONMap(kv.Data),
+				fmt.Sprintf("testdata/TestCreateEnvironment-%s-state.yaml", test.TestName),
+			)
+			testutils.AssertGolden(
+				t,
+				testutils.SnapshotStringMap(secretsKV.Data),
+				fmt.Sprintf("testdata/TestCreateEnvironment-%s-secrets.yaml", test.TestName),
+			)
 		})
 	}
 }
 
 func TestPutDeployment(t *testing.T) {
-	snapshotFile := "testdata/TestPutDeployment.yaml"
-	if *update {
-		kv := backend.NewTestKV()
-		ctx := context.Background()
-		err := state.PutModel(ctx, kv, state.ModelTypeDeployment, &state.Deployment{
-			Meta:              state.Meta{Name: "foo"},
-			EnvironmentLabels: map[string]string{},
-			FunctionLabels:    map[string]string{},
-		})
-		require.NoError(t, err)
-		data := kv.Snapshot()
-		if err := ioutil.WriteFile(snapshotFile, []byte(data), 0644); err != nil {
-			t.Fatal(err)
-		}
-	}
+	initial := backend.NewTestKV()
+	ctx := context.Background()
+	err := state.PutModel(ctx, initial, state.ModelTypeDeployment, &state.Deployment{
+		Meta:              state.Meta{Name: "existing"},
+		EnvironmentLabels: map[string]string{},
+		FunctionLabels:    map[string]string{},
+	})
+	require.NoError(t, err)
 
 	tests := []struct {
 		TestName string
@@ -401,7 +386,7 @@ func TestPutDeployment(t *testing.T) {
 		{
 			TestName: "New",
 			Input: &state.Deployment{
-				Meta:              state.Meta{Name: "bar"},
+				Meta:              state.Meta{Name: "new"},
 				EnvironmentLabels: map[string]string{"foo": "foo"},
 				FunctionLabels:    map[string]string{"bar": "bar"},
 			},
@@ -410,7 +395,7 @@ func TestPutDeployment(t *testing.T) {
 			TestName: "Update",
 			Input: &state.Deployment{
 				Meta: state.Meta{
-					Name: "foo",
+					Name: "existing",
 					Labels: map[string]string{
 						"foo": "bar",
 					},
@@ -424,9 +409,8 @@ func TestPutDeployment(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.TestName, func(t *testing.T) {
 			ctx := context.Background()
-			kv := backend.NewTestKV()
-			kv.LoadSnapshot(snapshotFile)
 
+			kv := initial.Copy()
 			s := &Server{
 				StateStore: kv,
 			}
@@ -438,7 +422,11 @@ func TestPutDeployment(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			snapshot.AssertString(t, kv.Snapshot(), fmt.Sprintf("testdata/TestPutDeployment-%s-state.yaml", test.TestName), *update)
+			testutils.AssertGolden(
+				t,
+				testutils.SnapshotJSONMap(kv.Data),
+				fmt.Sprintf("testdata/TestPutDeployment-%s-state.yaml", test.TestName),
+			)
 		})
 	}
 }
