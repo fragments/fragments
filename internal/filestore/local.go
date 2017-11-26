@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -27,10 +28,10 @@ type Local struct {
 // The uploadDir is used for storing uploads, files are moved to the sourceDir
 // when persisted. The directories are created if they don't already exist.
 func NewLocal(uploadDir, sourceDir string) (*Local, error) {
-	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+	if err := os.MkdirAll(uploadDir, 0700); err != nil {
 		return nil, errors.Wrap(err, "could not make upload directory")
 	}
-	if err := os.MkdirAll(sourceDir, 0755); err != nil {
+	if err := os.MkdirAll(sourceDir, 0700); err != nil {
 		return nil, errors.Wrap(err, "could not make source directory")
 	}
 
@@ -57,7 +58,9 @@ func NewLocal(uploadDir, sourceDir string) (*Local, error) {
 		}
 		addrc <- lis.Addr().String()
 		close(addrc)
-		_ = srv.Serve(lis)
+		if err := srv.Serve(lis); err != nil {
+			log.Println(err)
+		}
 	}()
 
 	l := &Local{

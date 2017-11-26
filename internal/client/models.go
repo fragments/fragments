@@ -51,8 +51,14 @@ func (f *functionModel) Meta() *Meta             { return f.meta }
 func (f *functionModel) Type() ModelType         { return ModelTypeFunction }
 func (f *functionModel) Function() *FunctionSpec { return f.spec }
 func (f *functionModel) testString() string {
-	meta, _ := json.MarshalIndent(f.Meta(), "", "    ")
-	spec, _ := json.MarshalIndent(f.Function(), "", "    ")
+	meta, err := json.MarshalIndent(f.Meta(), "", "    ")
+	if err != nil {
+		return err.Error()
+	}
+	spec, err := json.MarshalIndent(f.Function(), "", "    ")
+	if err != nil {
+		return err.Error()
+	}
 	return fmt.Sprintf("function\nfile: %s\nmeta: %s\nspec: %s", f.File(), meta, spec)
 }
 
@@ -88,8 +94,14 @@ func (d *deploymentModel) Meta() *Meta                 { return d.meta }
 func (d *deploymentModel) Type() ModelType             { return ModelTypeDeployment }
 func (d *deploymentModel) Deployment() *DeploymentSpec { return d.spec }
 func (d *deploymentModel) testString() string {
-	meta, _ := json.MarshalIndent(d.Meta(), "", "    ")
-	spec, _ := json.MarshalIndent(d.Deployment(), "", "    ")
+	meta, err := json.MarshalIndent(d.Meta(), "", "    ")
+	if err != nil {
+		return err.Error()
+	}
+	spec, err := json.MarshalIndent(d.Deployment(), "", "    ")
+	if err != nil {
+		return err.Error()
+	}
 	return fmt.Sprintf("deployment\nfile: %s\nmeta: %s\nspec: %s", d.File(), meta, spec)
 }
 

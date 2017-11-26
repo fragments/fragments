@@ -26,20 +26,20 @@ func (t *targz) Compress(files []string) (io.Reader, error) {
 	buffer := &bytes.Buffer{}
 
 	gzf := gzip.NewWriter(buffer)
-	defer func() {
-		_ = gzf.Close()
-	}()
-
 	tarf := tar.NewWriter(gzf)
-	defer func() {
-		_ = tarf.Close()
-	}()
 
 	for _, f := range files {
 		err := t.addFile(tarf, f)
 		if err != nil {
 			return nil, errors.Wrapf(err, "unable to add %s", f)
 		}
+	}
+
+	if err := tarf.Close(); err != nil {
+		return nil, err
+	}
+	if err := gzf.Close(); err != nil {
+		return nil, err
 	}
 
 	return io.Reader(buffer), nil
@@ -50,9 +50,6 @@ func (t *targz) addFile(w *tar.Writer, path string) error {
 	if err != nil {
 		return err
 	}
-	defer func() {
-		_ = file.Close()
-	}()
 
 	info, err := file.Stat()
 	if err != nil {
@@ -64,14 +61,15 @@ func (t *targz) addFile(w *tar.Writer, path string) error {
 		return errors.Wrap(err, "unable to create tar header")
 	}
 
-	err = w.WriteHeader(header)
-	if err != nil {
+	if err = w.WriteHeader(header); err != nil {
 		return errors.Wrap(err, "unable to write header")
 	}
 
-	_, err = io.Copy(w, file)
-	if err != nil {
+	if _, err := io.Copy(w, file); err != nil {
 		return errors.Wrap(err, "unable to copy data to tarball")
+	}
+	if err := file.Close(); err != nil {
+		return errors.Wrap(err, "could not close file")
 	}
 
 	return nil

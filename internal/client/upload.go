@@ -17,14 +17,21 @@ func Upload(data io.Reader, url string) error {
 		Timeout: 1 * time.Minute,
 	}
 
-	req, _ := http.NewRequest(http.MethodPut, url, data)
+	req, err := http.NewRequest(http.MethodPut, url, data)
+	if err != nil {
+		return err
+	}
 	res, err := client.Do(req)
 	if err != nil {
 		return errors.Wrap(err, "upload request failed")
 	}
 
-	_, _ = io.Copy(ioutil.Discard, res.Body)
-	_ = res.Body.Close()
+	if _, err = io.Copy(ioutil.Discard, res.Body); err != nil {
+		return err
+	}
+	if err := res.Body.Close(); err != nil {
+		return err
+	}
 
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("received unexpected status %v", res.StatusCode)
