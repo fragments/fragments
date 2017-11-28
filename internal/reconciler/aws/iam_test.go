@@ -19,7 +19,8 @@ import (
 func TestAWSIAMCreate(t *testing.T) {
 	kv := backend.NewTestKV()
 	mockAWS := newMockAWS()
-	iamReconciler := newIAM(kv, mockAWS)
+	clock := testutils.NewMockClock()
+	iamReconciler := newIAM(kv, mockAWS, clock)
 	ctx := context.Background()
 
 	_, err := iamReconciler.putRole(ctx, &iamRoleInput{
@@ -52,7 +53,7 @@ func TestAWSIAMCreate(t *testing.T) {
 }
 
 func TestAWSIAMUpdate(t *testing.T) {
-	createDate, _ := time.Parse(time.RFC3339, "2017-10-01T12:34:56+00:00")
+	createDate := testutils.NewMockClock().Now()
 	roleID := "ABCDEFGHIJKLMNOPQR123"
 	existing := &iam.Role{
 		Arn: aws.String("arn:aws:iam::123456789000:role/path/existing"),
@@ -66,11 +67,12 @@ func TestAWSIAMUpdate(t *testing.T) {
 
 	kv := backend.NewTestKV()
 	mockAWS := newMockAWS()
-	iamReconciler := newIAM(kv, mockAWS)
+	clock := testutils.NewMockClock().Add(24 * time.Hour)
+	iamReconciler := newIAM(kv, mockAWS, clock)
 	ctx := context.Background()
 
 	res := iamReconciler.pointer("existing")
-	err := res.Put(ctx, kv, existing)
+	err := res.Put(ctx, kv, clock, existing)
 	require.NoError(t, err)
 	mockAWS.iamMock.Roles[*existing.RoleName] = existing
 
@@ -122,7 +124,7 @@ func (m *mockIAM) CreateRoleWithContext(ctx aws.Context, input *iam.CreateRoleIn
 	if m.Roles[name] != nil {
 		return nil, errors.New("role exists")
 	}
-	createDate, _ := time.Parse(time.RFC3339, "2017-10-31T12:34:56+00:00")
+	createDate := testutils.NewMockClock().Now()
 	roleID := "ABCDEFGHIJKLMNOPQR123"
 	role := &iam.Role{
 		Arn: aws.String(fmt.Sprintf("arn:aws:iam::123456789000:role/path/%s", name)),

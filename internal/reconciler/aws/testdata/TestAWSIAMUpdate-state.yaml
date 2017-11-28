@@ -3,12 +3,12 @@
         "data": {
             "Arn": "arn:aws:iam::123456789000:role/path/existing",
             "AssumeRolePolicyDocument": "doc",
-            "CreateDate": "2017-10-01T12:34:56Z",
+            "CreateDate": "2017-11-22T12:34:56.123456789Z",
             "Description": "updated",
             "Path": "/path/",
             "RoleId": "ABCDEFGHIJKLMNOPQR123",
             "RoleName": "existing"
         },
-        "created": "2017-10-31T12:34:56+02:00",
-        "updated": "2017-10-31T12:34:56+02:00"
+        "created": "2017-11-23T12:34:56.123456789Z",
+        "updated": "2017-11-23T12:34:56.123456789Z"
     }

@@ -40,6 +40,7 @@ type lambdaReconciler struct {
 	store       store
 	source      filestore.SourceReader
 	svcProvider serviceProvider
+	clock       clock
 }
 
 func (l *lambdaReconciler) pointer(name string) *state.ResPointer {
@@ -50,11 +51,12 @@ func (l *lambdaReconciler) pointer(name string) *state.ResPointer {
 	}
 }
 
-func newLambda(store store, source filestore.SourceReader, svcProvider serviceProvider) *lambdaReconciler {
+func newLambda(store store, source filestore.SourceReader, svcProvider serviceProvider, clock clock) *lambdaReconciler {
 	return &lambdaReconciler{
 		store:       store,
 		source:      source,
 		svcProvider: svcProvider,
+		clock:       clock,
 	}
 }
 
@@ -81,7 +83,7 @@ func (l *lambdaReconciler) putFunction(ctx context.Context, input *state.Functio
 	}
 
 	// TODO(akupila): allow passing in/replacing default role
-	iam := newIAM(l.store, l.svcProvider)
+	iam := newIAM(l.store, l.svcProvider, l.clock)
 	role, err := iam.putRole(ctx, &iamRoleInput{
 		assumeRolePolicyDocument: mustCompress(defaultAssumeLambdaExecPolicy),
 		description:              defaultLambdaRoleDescription,
@@ -134,7 +136,7 @@ func (l *lambdaReconciler) create(ctx context.Context, role *iam.Role, input *st
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create lambda")
 	}
-	err = res.Put(ctx, l.store, &lambdaData{
+	err = res.Put(ctx, l.store, l.clock, &lambdaData{
 		FunctionConfiguration: funcConfig,
 		CodeChecksum:          input.Checksum,
 	})
@@ -191,7 +193,7 @@ func (l *lambdaReconciler) updateConfig(ctx context.Context, data *lambdaData, i
 		return errors.Wrap(err, "could not update lambda config")
 	}
 	data.FunctionConfiguration = funcConfig
-	if err := res.Put(ctx, l.store, data); err != nil {
+	if err := res.Put(ctx, l.store, l.clock, data); err != nil {
 		return errors.Wrap(err, "could not store update lambda config")
 	}
 	return nil
@@ -221,7 +223,7 @@ func (l *lambdaReconciler) updateCode(ctx context.Context, data *lambdaData, inp
 	}
 	data.FunctionConfiguration = funcConfig
 	data.CodeChecksum = input.Checksum
-	if err := res.Put(ctx, l.store, data); err != nil {
+	if err := res.Put(ctx, l.store, l.clock, data); err != nil {
 		return errors.Wrap(err, "could not store updated lambda code")
 	}
 	return nil

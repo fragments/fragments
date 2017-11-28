@@ -10,10 +10,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Now returns the current timestamp. Normally this is time.Now, but it can be
-// overridden for deterministic tests.
-var Now = func() time.Time {
-	return time.Now()
+// clock returns the current time, or a mocked time for unit tests.
+type clock interface {
+	Now() time.Time
 }
 
 // ResourceType defines the type of a resource.
@@ -63,12 +62,12 @@ func (r *ResPointer) Get(ctx context.Context, kv backend.Reader, data interface{
 // implementation, and is wrapped in a Resource type, along with meta data.
 // If the resource doesn't exist, it is created.
 // If the resource exists, the data and updated timestamp are updated.
-func (r *ResPointer) Put(ctx context.Context, kv backend.ReaderWriter, data interface{}) error {
+func (r *ResPointer) Put(ctx context.Context, kv backend.ReaderWriter, clock clock, data interface{}) error {
 	e, err := r.getEnvelope(ctx, kv)
 	if err != nil {
 		return errors.Wrap(err, "check existing resource")
 	}
-	now := Now()
+	now := clock.Now()
 	if e == nil {
 		e = &envelope{
 			Created: now,
@@ -111,4 +110,12 @@ func (r *ResPointer) getEnvelope(ctx context.Context, kv backend.Reader) (*envel
 		return nil, errors.Wrap(err, "could not unmarshal resource")
 	}
 	return &res, nil
+}
+
+// RealClock is a real clock that returns the real time.
+type RealClock struct{}
+
+// Now returns the actual current time.
+func (r *RealClock) Now() time.Time {
+	return time.Now()
 }

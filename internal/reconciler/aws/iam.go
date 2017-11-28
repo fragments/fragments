@@ -20,12 +20,14 @@ type iamService interface {
 type iamReconciler struct {
 	store       store
 	svcProvider serviceProvider
+	clock       clock
 }
 
-func newIAM(store store, svcProvider serviceProvider) *iamReconciler {
+func newIAM(store store, svcProvider serviceProvider, clock clock) *iamReconciler {
 	return &iamReconciler{
 		store:       store,
 		svcProvider: svcProvider,
+		clock:       clock,
 	}
 }
 
@@ -88,7 +90,7 @@ func (i *iamReconciler) create(ctx context.Context, res *state.ResPointer, input
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create iam role")
 	}
-	if err := res.Put(ctx, i.store, out.Role); err != nil {
+	if err := res.Put(ctx, i.store, i.clock, out.Role); err != nil {
 		return nil, errors.Wrap(err, "could not store created iam role")
 	}
 	return out.Role, nil
@@ -121,7 +123,7 @@ func (i *iamReconciler) update(ctx context.Context, res *state.ResPointer, exist
 	}
 	role := existing
 	role.Description = out.Role.Description
-	if err = res.Put(ctx, i.store, role); err != nil {
+	if err = res.Put(ctx, i.store, i.clock, role); err != nil {
 		return nil, errors.Wrap(err, "could not store created iam role")
 	}
 	return &role, nil

@@ -3,14 +3,14 @@
         "data": {
             "Arn": "arn:aws:iam::123456789000:role/path/fragments-default-lambda-role",
             "AssumeRolePolicyDocument": "{\"Statement\":[{\"Action\":\"sts:AssumeRole\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"}}],\"Version\":\"2012-10-17\"}",
-            "CreateDate": "2017-10-31T12:34:56Z",
+            "CreateDate": "2017-11-22T12:34:56.123456789Z",
             "Description": "Default Fragments Lambda execute role",
             "Path": "/fragments/",
             "RoleId": "ABCDEFGHIJKLMNOPQR123",
             "RoleName": "fragments-default-lambda-role"
         },
-        "created": "2017-10-31T12:34:56+02:00",
-        "updated": "2017-10-31T12:34:56+02:00"
+        "created": "2017-11-22T12:34:56.123456789Z",
+        "updated": "2017-11-22T12:34:56.123456789Z"
     }
 /resources/aws/lambda/existing: |
     {
@@ -46,8 +46,8 @@
             },
             "CodeChecksum": "abc123"
         },
-        "created": "2017-10-31T12:34:56+02:00",
-        "updated": "2017-10-31T12:34:56+02:00"
+        "created": "2017-11-22T12:34:56.123456789Z",
+        "updated": "2017-11-22T12:34:56.123456789Z"
     }
 /resources/aws/lambda/foo: |
     {
@@ -80,6 +80,6 @@
             },
             "CodeChecksum": "abc"
         },
-        "created": "2017-10-31T12:34:56+02:00",
-        "updated": "2017-10-31T12:34:56+02:00"
+        "created": "2017-11-22T12:34:56.123456789Z",
+        "updated": "2017-11-22T12:34:56.123456789Z"
     }

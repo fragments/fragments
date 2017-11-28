@@ -2,7 +2,7 @@ roles:
   test:
     arn: arn:aws:iam::123456789000:role/path/test
     assumerolepolicydocument: doc
-    createdate: 2017-10-31T12:34:56Z
+    createdate: 2017-11-22T12:34:56.123456789Z
     description: description
     path: /test/
     roleid: ABCDEFGHIJKLMNOPQR123

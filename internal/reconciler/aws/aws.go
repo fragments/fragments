@@ -2,6 +2,7 @@ package aws
 
 import (
 	"context"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -39,8 +40,9 @@ func (r *Reconciler) Reconcile(ctx context.Context, environment *state.Environme
 		credentials: userCreds,
 		region:      config.Region,
 	}
+	clock := &state.RealClock{}
 
-	lambda := newLambda(r.StateStore, r.SourceRepo, svcProvider)
+	lambda := newLambda(r.StateStore, r.SourceRepo, svcProvider, clock)
 
 	_, err = lambda.putFunction(ctx, function)
 	if err != nil {
@@ -59,4 +61,8 @@ func (r *Reconciler) getConfig(environment *state.Environment) *state.Infrastruc
 		awsConfig.Region = defaultRegion
 	}
 	return awsConfig
+}
+
+type clock interface {
+	Now() time.Time
 }

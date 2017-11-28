@@ -18,18 +18,14 @@ type resData struct {
 }
 
 func TestResourceGet(t *testing.T) {
-	Now = func() time.Time {
-		mockTime, _ := time.Parse(time.RFC3339, "2017-10-31T12:34:56+02:00")
-		return mockTime
-	}
-
 	kv := backend.NewTestKV()
 	r := &ResPointer{
 		InfraType:    InfraType("testinfra"),
 		ResourceType: ResourceType("testres"),
 		Name:         "existing",
 	}
-	err := r.Put(context.Background(), kv, resData{Value: "test"})
+	clock := testutils.NewMockClock()
+	err := r.Put(context.Background(), kv, clock, resData{Value: "test"})
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -81,24 +77,14 @@ func TestResourceGet(t *testing.T) {
 }
 
 func TestResourcePut(t *testing.T) {
-	getTime1 := func() time.Time {
-		time1, _ := time.Parse(time.RFC3339, "2017-02-01T10:34:56+02:00")
-		return time1
-	}
-
-	getTime2 := func() time.Time {
-		time2, _ := time.Parse(time.RFC3339, "2017-10-10T11:34:56+02:00")
-		return time2
-	}
-
 	initial := backend.NewTestKV()
 	r := &ResPointer{
 		InfraType:    InfraType("testinfra"),
 		ResourceType: ResourceType("testres"),
 		Name:         "existing",
 	}
-	Now = getTime1
-	err := r.Put(context.Background(), initial, resData{Value: "existing"})
+	clock := testutils.NewMockClock()
+	err := r.Put(context.Background(), initial, clock, resData{Value: "existing"})
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -131,11 +117,11 @@ func TestResourcePut(t *testing.T) {
 				ResourceType: test.ResType,
 				Name:         test.Name,
 			}
-			Now = getTime2
 			payload := resData{
 				Value: "new",
 			}
-			err := r.Put(ctx, kv, &payload)
+			updateTime := testutils.NewMockClock().Add(24 * time.Hour)
+			err := r.Put(ctx, kv, updateTime, &payload)
 			if test.Error {
 				require.Error(t, err)
 				return
@@ -184,7 +170,8 @@ func TestLockResource(t *testing.T) {
 			} else {
 				data.Counter++
 			}
-			err = r.Put(ctx, kv, data)
+			clock := testutils.NewMockClock()
+			err = r.Put(ctx, kv, clock, data)
 			require.NoError(t, err)
 		}()
 	}

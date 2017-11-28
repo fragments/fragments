@@ -24,7 +24,8 @@ func TestAWSLambdaCreate(t *testing.T) {
 	kv := backend.NewTestKV()
 	mockAWS := newMockAWS()
 	mockFS := &mockfs.SourceReader{}
-	lambdaReconciler := newLambda(kv, mockFS, mockAWS)
+	clock := testutils.NewMockClock()
+	lambdaReconciler := newLambda(kv, mockFS, mockAWS, clock)
 	ctx := context.Background()
 
 	src, err := os.Open("testdata/function.tar.gz")
@@ -98,11 +99,12 @@ func TestAWSLambdaUpdate(t *testing.T) {
 
 	mockAWS := newMockAWS()
 	mockFS := &mockfs.SourceReader{}
-	lambdaReconciler := newLambda(kv, mockFS, mockAWS)
+	clock := testutils.NewMockClock()
+	lambdaReconciler := newLambda(kv, mockFS, mockAWS, clock)
 	ctx := context.Background()
 
 	res := lambdaReconciler.pointer("foo")
-	err := res.Put(context.Background(), kv, &lambdaData{
+	err := res.Put(context.Background(), kv, clock, &lambdaData{
 		FunctionConfiguration: initial,
 		CodeChecksum:          "abc",
 	})
