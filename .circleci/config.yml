@@ -102,8 +102,17 @@ jobs:
             VAULT_TEST_PORT: 8200
             VAULT_TEST_ROOT_TOKEN: test
           command: |
+            python <(wget https://bootstrap.pypa.io/get-pip.py -q -O-)
+            pip install xunitmerge
+            go get -u github.com/jstemmer/go-junit-report
             bash scripts/test.sh
             bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN
+
+      - store_artifacts:
+          path: testoutput
+
+      - store_test_results:
+          path: testoutput
 
       - run:
           name: Configure build
