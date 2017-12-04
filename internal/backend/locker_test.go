@@ -81,7 +81,7 @@ func TestLockerLock(t *testing.T) {
 
 			wg.Wait()
 
-			assert.Equal(t, counter, int64(1))
+			assert.Equal(t, int64(1), counter)
 
 			cancel()
 

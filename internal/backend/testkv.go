@@ -97,8 +97,8 @@ func (t *TestKV) List(ctx context.Context, root string) (map[string]string, erro
 // Lock locks a key on the test kv. The key is locked for concurrent access
 // until unlocked by calling the returned function.
 func (t *TestKV) Lock(ctx context.Context, key string) (func(), error) {
-	if ctx.Done() != nil {
-		return func() {}, ctx.Err()
+	if err := ctx.Err(); err != nil {
+		return func() {}, err
 	}
 
 	t.mu.Lock()
