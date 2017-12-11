@@ -1,0 +1,6 @@
+deployment: deployment/deployment-name
+environment: environment/environment-name
+function: function/function-name
+pendingupload: pendingupload/pending-upload-token
+user-password: user/user-secret-password/pass
+user-username: user/user-secret-username/name

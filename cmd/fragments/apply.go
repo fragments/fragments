@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/fragments/fragments/internal/client"
+	"github.com/fragments/fragments/internal/model"
 	"github.com/fragments/fragments/internal/server"
-	"github.com/fragments/fragments/internal/state"
 	"github.com/golang/sync/errgroup"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -169,16 +169,14 @@ func applyFunction(ctx context.Context, srv *server.Server, meta *client.Meta, f
 	}
 
 	// Construct request
-	function := &state.Function{
+	function := &model.Function{
+		Name:     meta.Name,
+		Labels:   meta.Labels,
 		Checksum: hex.EncodeToString(shasum),
-		Meta: state.Meta{
-			Name:   meta.Name,
-			Labels: meta.Labels,
-		},
-		Runtime: spec.Runtime,
+		Runtime:  spec.Runtime,
 	}
 	if spec.AWS != nil {
-		function.AWS = &state.FunctionAWS{
+		function.AWS = &model.FunctionAWS{
 			Timeout: spec.AWS.Timeout,
 			Memory:  spec.AWS.Memory,
 		}
@@ -203,11 +201,8 @@ func applyFunction(ctx context.Context, srv *server.Server, meta *client.Meta, f
 }
 
 func applyDeployment(ctx context.Context, srv *server.Server, meta *client.Meta, deployment *client.DeploymentSpec) error {
-	deploy := &state.Deployment{
-		Meta: state.Meta{
-			Name:   meta.Name,
-			Labels: meta.Labels,
-		},
+	deploy := &model.Deployment{
+		Name:              meta.Name,
 		EnvironmentLabels: deployment.EnvironmentLabels,
 		FunctionLabels:    deployment.FunctionLabels,
 	}

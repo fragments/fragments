@@ -1,20 +1,13 @@
-/models/environment/existing: |
+environment/existing: |
     {
-        "Meta": {
-            "Name": "existing",
-            "Labels": null
-        },
-        "Infrastructure": "aws",
-        "AWS": null
+        "name": "existing",
+        "infrastructure": "aws"
     }
-/models/environment/new: |
+environment/new: |
     {
-        "Meta": {
-            "Name": "new",
-            "Labels": {
-                "new": "true"
-            }
+        "name": "new",
+        "labels": {
+            "new": "true"
         },
-        "Infrastructure": "aws",
-        "AWS": null
+        "infrastructure": "aws"
     }

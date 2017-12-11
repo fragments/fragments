@@ -1,38 +1,33 @@
-/models/function/existing: |
+function/existing: |
     {
-        "Meta": {
-            "Name": "existing",
-            "Labels": {
-                "code": "initial",
-                "config": "initial"
-            }
+        "name": "existing",
+        "labels": {
+            "code": "initial",
+            "config": "initial"
         },
-        "Runtime": "nodejs",
-        "Checksum": "ABC",
-        "SourceFilename": "existing.tar.gz",
-        "AWS": {
-            "Timeout": 3,
-            "Memory": 256
+        "runtime": "nodejs",
+        "checksum": "ABC",
+        "source_filename": "existing.tar.gz",
+        "aws": {
+            "timeout": 3,
+            "memory": 256
         }
     }
-/uploads/newtoken: |
+pendingupload/newtoken: |
     {
-        "Filename": "newtoken",
-        "PreviousFilename": "",
-        "Function": {
-            "Meta": {
-                "Name": "new",
-                "Labels": {
-                    "code": "new",
-                    "config": "new"
-                }
+        "token": "newtoken",
+        "filename": "newtoken",
+        "function": {
+            "name": "new",
+            "labels": {
+                "code": "new",
+                "config": "new"
             },
-            "Runtime": "nodejs",
-            "Checksum": "new",
-            "SourceFilename": "",
-            "AWS": {
-                "Timeout": 3,
-                "Memory": 256
+            "runtime": "nodejs",
+            "checksum": "new",
+            "aws": {
+                "timeout": 3,
+                "memory": 256
             }
         }
     }

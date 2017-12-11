@@ -1,15 +1,10 @@
-/models/deployment/existing: |
+deployment/existing: |
     {
-        "Meta": {
-            "Name": "existing",
-            "Labels": {
-                "foo": "bar"
-            }
-        },
-        "EnvironmentLabels": {
+        "name": "existing",
+        "environment_labels": {
             "foo": "foo"
         },
-        "FunctionLabels": {
+        "function_labels": {
             "bar": "bar"
         }
     }

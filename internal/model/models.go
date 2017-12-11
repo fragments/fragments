@@ -1,17 +1,48 @@
-package state
+package model
 
-// ModelType defines the type of a model. It is used to group the same
-// models in the backend.
-type ModelType string
+// Function represents a function specification.
+type Function struct {
+	// Name is the unique name for a function.
+	Name string `json:"name,omitempty"`
+	// Labels are labels used to identify a function.
+	Labels map[string]string `json:"labels,omitempty"`
+	// Runtime is the function runtime.
+	Runtime string `json:"runtime,omitempty"`
+	// Checksum is the checksum calculated by the client of the source files for.
+	// the function
+	Checksum string `json:"checksum,omitempty"`
+	// SourceFilename is the name of the source file. For functions being created
+	// this is ignored, it is set when the source has been confirmed.
+	SourceFilename string `json:"source_filename,omitempty"`
+	// AWS is the Amazon Web Services specific configuration for the function.
+	AWS *FunctionAWS `json:"aws,omitempty"`
+}
 
-const (
-	// ModelTypeFunction is a function.
-	ModelTypeFunction ModelType = "function"
-	// ModelTypeEnvironment is a target deployment environment
-	ModelTypeEnvironment ModelType = "environment"
-	// ModelTypeDeployment is a target deployment environment
-	ModelTypeDeployment ModelType = "deployment"
-)
+// FunctionAWS contains AWS function (Lambda) specific configuration info.
+type FunctionAWS struct {
+	// Timeout is the timeout in seconds for the function.
+	Timeout int64 `json:"timeout,omitempty"`
+	// Memory is the memory in mb for the function.,
+	Memory int64 `json:"memory,omitempty"`
+}
+
+// PendingUpload is a source code request that has been returned to the client.
+// When source is confirmed it is used to fetch the source and apply function
+// changes.
+type PendingUpload struct {
+	// Token is the unique token to identify a pending upload.
+	Token string `json:"token,omitempty"`
+	// Filename is the filename to retrieve the source by from the filestore.
+	Filename string `json:"filename,omitempty"`
+	// PreviousFilename is the filename of the previous source in case the
+	// function code has been updated. It is blank if the function did not exist
+	// before.
+	PreviousFilename string `json:"previous_filename,omitempty"`
+	// Function is the function configuration for the new function. Once the
+	// source code upload has been confirmed the function is created with this
+	// configuration.
+	Function *Function `json:"function,omitempty"`
+}
 
 // InfraType is a target infrastructure to deploy to
 type InfraType string
@@ -21,95 +52,32 @@ const (
 	InfrastructureTypeAWS InfraType = "aws"
 )
 
-// Model is a a generic model.
-type Model interface {
-	// Name returns a unique name to identify the model. The name is unique
-	// within the model type, not necessarily globally unique.
-	Name() string
-}
-
-// Meta contains metadata for a model.
-type Meta struct {
-	// Name is the name for a model. It must be unique among other models of
-	// the same type.
-	Name string
-	// Labels are used to identify a model.
-	Labels map[string]string
-}
-
-// Function represents a function specification.
-type Function struct {
-	// Meta contains function metadata.
-	Meta Meta
-	// Runtime is the function runtime.
-	Runtime string
-	// Checksum is the checksum calculated by the client of the source files for.
-	// the function
-	Checksum string
-	// SourceFilename is the name of the source file. For functions being created
-	// this is ignored, it is set when the source has been confirmed.
-	SourceFilename string
-	// AWS is the Amazon Web Services specific configuration for the function.
-	AWS *FunctionAWS
-}
-
-// FunctionAWS contains AWS function (Lambda) specific configuration info.
-type FunctionAWS struct {
-	// Timeout is the timeout in seconds for the function.
-	Timeout int64
-	// Memory is the memory in mb for the function.
-	Memory int64
-}
-
-// Name returns a unique name to identify the function.
-func (f *Function) Name() string { return f.Meta.Name }
-
-// PendingUpload is a source code request that has been returned to the client.
-// When source is confirmed it is used to fetch the source and apply function
-// changes.
-type PendingUpload struct {
-	// Filename is the filename to retrieve the source by from the filestore.
-	Filename string
-	// PreviousFilename is the filename of the previous source in case the
-	// function code has been updated. It is blank if the function did not exist
-	// before.
-	PreviousFilename string
-	// Function is the function configuration for the new function. Once the
-	// source code upload has been confirmed the function is created with this
-	// configuration.
-	Function *Function
-}
-
 // Environment is a target deployment environment.
 type Environment struct {
-	// Meta contains environment metadata.
-	Meta Meta
+	// Name is the unique name for an environment.
+	Name string `json:"name,omitempty"`
+	// Labels are labels used to identify an environment.
+	Labels map[string]string `json:"labels,omitempty"`
 	// Infrastructure defines what type the infrastructure type is for the environment.
-	Infrastructure InfraType
+	Infrastructure InfraType `json:"infrastructure,omitempty"`
 	// AWS specifies AWS specific deployment information
-	AWS *InfrastructureAWS
+	AWS *InfrastructureAWS `json:"aws,omitempty"`
 }
-
-// Name returns a unique name to identify the environment.
-func (e *Environment) Name() string { return e.Meta.Name }
 
 // InfrastructureAWS contains information for an AWS deployment
 type InfrastructureAWS struct {
-	Region string
+	Region string `json:"region,omitempty"`
 }
 
 // Deployment represents a connection between functions to environments.
 type Deployment struct {
-	// Meta contains deployment metadata.
-	Meta Meta
+	// Name is the unique name for a deployment.
+	Name string `json:"name,omitempty"`
 	// EnvironmentLabels is the label seletor for which environment(s) should be
 	// the destination of the deployment. The environment must have every label
 	// assigned to be included.
-	EnvironmentLabels map[string]string
+	EnvironmentLabels map[string]string `json:"environment_labels,omitempty"`
 	// FunctionLabels is the label selector for which function(s) should be part
 	// of the deployment. Every label must match for the function to be included.
-	FunctionLabels map[string]string
+	FunctionLabels map[string]string `json:"function_labels,omitempty"`
 }
-
-// Name returns a unique name to identify the deployment.
-func (d *Deployment) Name() string { return d.Meta.Name }

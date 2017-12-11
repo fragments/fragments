@@ -1,38 +1,34 @@
-/models/function/existing: |
+function/existing: |
     {
-        "Meta": {
-            "Name": "existing",
-            "Labels": {
-                "code": "initial",
-                "config": "initial"
-            }
+        "name": "existing",
+        "labels": {
+            "code": "initial",
+            "config": "initial"
         },
-        "Runtime": "nodejs",
-        "Checksum": "ABC",
-        "SourceFilename": "existing.tar.gz",
-        "AWS": {
-            "Timeout": 3,
-            "Memory": 256
+        "runtime": "nodejs",
+        "checksum": "ABC",
+        "source_filename": "existing.tar.gz",
+        "aws": {
+            "timeout": 3,
+            "memory": 256
         }
     }
-/uploads/codetoken: |
+pendingupload/codetoken: |
     {
-        "Filename": "codetoken",
-        "PreviousFilename": "existing.tar.gz",
-        "Function": {
-            "Meta": {
-                "Name": "existing",
-                "Labels": {
-                    "code": "updated",
-                    "config": "initial"
-                }
+        "token": "codetoken",
+        "filename": "codetoken",
+        "previous_filename": "existing.tar.gz",
+        "function": {
+            "name": "existing",
+            "labels": {
+                "code": "updated",
+                "config": "initial"
             },
-            "Runtime": "nodejs",
-            "Checksum": "UPDATED",
-            "SourceFilename": "",
-            "AWS": {
-                "Timeout": 3,
-                "Memory": 256
+            "runtime": "nodejs",
+            "checksum": "UPDATED",
+            "aws": {
+                "timeout": 3,
+                "memory": 256
             }
         }
     }

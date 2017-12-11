@@ -1,50 +1,39 @@
-/models/function/existing: |
+function/existing: |
     {
-        "Meta": {
-            "Name": "existing",
-            "Labels": null
-        },
-        "Runtime": "go",
-        "Checksum": "updated",
-        "SourceFilename": "bar.tar.gz",
-        "AWS": {
-            "Timeout": 3,
-            "Memory": 256
+        "name": "existing",
+        "runtime": "go",
+        "checksum": "updated",
+        "source_filename": "bar.tar.gz",
+        "aws": {
+            "timeout": 3,
+            "memory": 256
         }
     }
-/uploads/new: |
+pendingupload/new: |
     {
-        "Filename": "new.tar.gz",
-        "PreviousFilename": "",
-        "Function": {
-            "Meta": {
-                "Name": "new",
-                "Labels": null
-            },
-            "Runtime": "go",
-            "Checksum": "new",
-            "SourceFilename": "",
-            "AWS": {
-                "Timeout": 3,
-                "Memory": 256
+        "token": "new",
+        "filename": "new.tar.gz",
+        "function": {
+            "name": "new",
+            "runtime": "go",
+            "checksum": "new",
+            "aws": {
+                "timeout": 3,
+                "memory": 256
             }
         }
     }
-/uploads/update-config: |
+pendingupload/update-config: |
     {
-        "Filename": "foo.tar.gz",
-        "PreviousFilename": "",
-        "Function": {
-            "Meta": {
-                "Name": "existing",
-                "Labels": null
-            },
-            "Runtime": "nodejs",
-            "Checksum": "foo",
-            "SourceFilename": "",
-            "AWS": {
-                "Timeout": 5,
-                "Memory": 1024
+        "token": "update-config",
+        "filename": "foo.tar.gz",
+        "function": {
+            "name": "existing",
+            "runtime": "nodejs",
+            "checksum": "foo",
+            "aws": {
+                "timeout": 5,
+                "memory": 1024
             }
         }
     }

@@ -1,0 +1,1 @@
+{"name":"env","labels":{"foo":"foo"},"infrastructure":"aws","aws":{"region":"us-west-2"}}

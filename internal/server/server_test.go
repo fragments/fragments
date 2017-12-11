@@ -7,7 +7,7 @@ import (
 
 	"github.com/fragments/fragments/internal/backend"
 	fsmocks "github.com/fragments/fragments/internal/filestore/mocks"
-	"github.com/fragments/fragments/internal/state"
+	"github.com/fragments/fragments/internal/model"
 	"github.com/fragments/fragments/pkg/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,15 +16,13 @@ import (
 func TestPutFunction(t *testing.T) {
 	initial := backend.NewTestKV()
 	ctx := context.Background()
-	err := state.PutModel(ctx, initial, state.ModelTypeFunction, &state.Function{
-		Meta: state.Meta{
-			Name: "existing",
-			Labels: map[string]string{
-				"code":   "initial",
-				"config": "initial",
-			},
+	err := putFunction(ctx, initial, &model.Function{
+		Name: "existing",
+		Labels: map[string]string{
+			"code":   "initial",
+			"config": "initial",
 		},
-		AWS:            &state.FunctionAWS{Timeout: 3, Memory: 256},
+		AWS:            &model.FunctionAWS{Timeout: 3, Memory: 256},
 		Checksum:       "ABC",
 		Runtime:        "nodejs",
 		SourceFilename: "existing.tar.gz",
@@ -33,7 +31,7 @@ func TestPutFunction(t *testing.T) {
 
 	tests := []struct {
 		TestName string
-		Function *state.Function
+		Function *model.Function
 		Token    string
 		Response *UploadRequest
 		Error    bool
@@ -45,20 +43,18 @@ func TestPutFunction(t *testing.T) {
 		},
 		{
 			TestName: "NoName",
-			Function: &state.Function{},
+			Function: &model.Function{},
 			Error:    true,
 		},
 		{
 			TestName: "CreateNew",
-			Function: &state.Function{
-				Meta: state.Meta{
-					Name: "new",
-					Labels: map[string]string{
-						"code":   "new",
-						"config": "new",
-					},
+			Function: &model.Function{
+				Name: "new",
+				Labels: map[string]string{
+					"code":   "new",
+					"config": "new",
 				},
-				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
+				AWS:      &model.FunctionAWS{Timeout: 3, Memory: 256},
 				Runtime:  "nodejs",
 				Checksum: "new",
 			},
@@ -70,15 +66,13 @@ func TestPutFunction(t *testing.T) {
 		},
 		{
 			TestName: "UpdateCode",
-			Function: &state.Function{
-				Meta: state.Meta{
-					Name: "existing",
-					Labels: map[string]string{
-						"code":   "updated",
-						"config": "initial",
-					},
+			Function: &model.Function{
+				Name: "existing",
+				Labels: map[string]string{
+					"code":   "updated",
+					"config": "initial",
 				},
-				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
+				AWS:      &model.FunctionAWS{Timeout: 3, Memory: 256},
 				Runtime:  "nodejs",
 				Checksum: "UPDATED",
 			},
@@ -90,15 +84,13 @@ func TestPutFunction(t *testing.T) {
 		},
 		{
 			TestName: "UpdateConfig",
-			Function: &state.Function{
-				Meta: state.Meta{
-					Name: "existing",
-					Labels: map[string]string{
-						"config": "updated",
-						"code":   "initial",
-					},
+			Function: &model.Function{
+				Name: "existing",
+				Labels: map[string]string{
+					"config": "updated",
+					"code":   "initial",
 				},
-				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 512},
+				AWS:      &model.FunctionAWS{Timeout: 3, Memory: 512},
 				Runtime:  "nodejs",
 				Checksum: "ABC",
 			},
@@ -106,15 +98,13 @@ func TestPutFunction(t *testing.T) {
 		},
 		{
 			TestName: "UpdateCodeAndConfig",
-			Function: &state.Function{
-				Meta: state.Meta{
-					Name: "existing",
-					Labels: map[string]string{
-						"code":   "updated",
-						"config": "updated",
-					},
+			Function: &model.Function{
+				Name: "existing",
+				Labels: map[string]string{
+					"code":   "updated",
+					"config": "updated",
 				},
-				AWS:      &state.FunctionAWS{Timeout: 10, Memory: 1024},
+				AWS:      &model.FunctionAWS{Timeout: 10, Memory: 1024},
 				Runtime:  "nodejs",
 				Checksum: "ABC123",
 			},
@@ -126,11 +116,16 @@ func TestPutFunction(t *testing.T) {
 		},
 		{
 			TestName: "NoChange",
-			Function: &state.Function{
-				Meta:     state.Meta{Name: "existing"},
-				AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
-				Runtime:  "nodejs",
-				Checksum: "ABC",
+			Function: &model.Function{
+				Name: "existing",
+				Labels: map[string]string{
+					"code":   "initial",
+					"config": "initial",
+				},
+				AWS:            &model.FunctionAWS{Timeout: 3, Memory: 256},
+				Runtime:        "nodejs",
+				Checksum:       "ABC",
+				SourceFilename: "existing.tar.gz",
 			},
 			Response: nil,
 		},
@@ -147,10 +142,9 @@ func TestPutFunction(t *testing.T) {
 
 			kv := initial.Copy()
 
-			s := &Server{
-				StateStore:    kv,
-				SourceStore:   mockSourceStore,
-				GenerateToken: func() string { return test.Token },
+			s := New(kv, nil, mockSourceStore)
+			s.GenerateToken = func() string {
+				return test.Token
 			}
 
 			res, err := s.PutFunction(ctx, test.Function)
@@ -174,39 +168,42 @@ func TestPutFunction(t *testing.T) {
 func TestConfirmUpload(t *testing.T) {
 	initial := backend.NewTestKV()
 	ctx := context.Background()
-	err := state.PutModel(ctx, initial, state.ModelTypeFunction, &state.Function{
-		Meta:           state.Meta{Name: "existing"},
-		AWS:            &state.FunctionAWS{Timeout: 3, Memory: 256},
+	err := putFunction(ctx, initial, &model.Function{
+		Name:           "existing",
+		AWS:            &model.FunctionAWS{Timeout: 3, Memory: 256},
 		Runtime:        "go",
 		SourceFilename: "previous.tar.gz",
 		Checksum:       "foo",
 	})
 	require.NoError(t, err)
-	err = state.PutPendingUpload(ctx, initial, "new", &state.PendingUpload{
+	err = putPendingUpload(ctx, initial, &model.PendingUpload{
+		Token:    "new",
 		Filename: "new.tar.gz",
-		Function: &state.Function{
-			Meta:     state.Meta{Name: "new"},
-			AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
+		Function: &model.Function{
+			Name:     "new",
+			AWS:      &model.FunctionAWS{Timeout: 3, Memory: 256},
 			Runtime:  "go",
 			Checksum: "new",
 		},
 	})
 	require.NoError(t, err)
-	err = state.PutPendingUpload(ctx, initial, "update-config", &state.PendingUpload{
+	err = putPendingUpload(ctx, initial, &model.PendingUpload{
+		Token:    "update-config",
 		Filename: "foo.tar.gz",
-		Function: &state.Function{
-			Meta:     state.Meta{Name: "existing"},
-			AWS:      &state.FunctionAWS{Timeout: 5, Memory: 1024},
+		Function: &model.Function{
+			Name:     "existing",
+			AWS:      &model.FunctionAWS{Timeout: 5, Memory: 1024},
 			Runtime:  "nodejs",
 			Checksum: "foo",
 		},
 	})
 	require.NoError(t, err)
-	err = state.PutPendingUpload(ctx, initial, "update-code", &state.PendingUpload{
+	err = putPendingUpload(ctx, initial, &model.PendingUpload{
+		Token:    "update-code",
 		Filename: "bar.tar.gz",
-		Function: &state.Function{
-			Meta:     state.Meta{Name: "existing"},
-			AWS:      &state.FunctionAWS{Timeout: 3, Memory: 256},
+		Function: &model.Function{
+			Name:     "existing",
+			AWS:      &model.FunctionAWS{Timeout: 3, Memory: 256},
 			Runtime:  "go",
 			Checksum: "updated",
 		},
@@ -253,10 +250,9 @@ func TestConfirmUpload(t *testing.T) {
 
 			kv := initial.Copy()
 
-			s := &Server{
-				StateStore:    kv,
-				SourceStore:   mockSourceStore,
-				GenerateToken: func() string { return test.Token },
+			s := New(kv, nil, mockSourceStore)
+			s.GenerateToken = func() string {
+				return test.Token
 			}
 
 			err := s.ConfirmUpload(ctx, test.Token)
@@ -280,9 +276,9 @@ func TestConfirmUpload(t *testing.T) {
 func TestCreateEnvironment(t *testing.T) {
 	initial := backend.NewTestKV()
 	ctx := context.Background()
-	err := state.PutModel(ctx, initial, state.ModelTypeEnvironment, &state.Environment{
-		Meta:           state.Meta{Name: "existing"},
-		Infrastructure: state.InfrastructureTypeAWS,
+	err := putEnvironment(ctx, initial, &model.Environment{
+		Name:           "existing",
+		Infrastructure: model.InfrastructureTypeAWS,
 	})
 	require.NoError(t, err)
 
@@ -315,7 +311,7 @@ func TestCreateEnvironment(t *testing.T) {
 				Labels: map[string]string{
 					"new": "true",
 				},
-				Infrastructure: state.InfrastructureTypeAWS,
+				Infrastructure: model.InfrastructureTypeAWS,
 				Username:       "user",
 				Password:       "pass",
 			},
@@ -329,12 +325,7 @@ func TestCreateEnvironment(t *testing.T) {
 			kv := initial.Copy()
 			secretsKV := backend.NewTestKV()
 
-			s := &Server{
-				StateStore:    kv,
-				SecretStore:   secretsKV,
-				SourceStore:   nil,
-				GenerateToken: nil,
-			}
+			s := New(kv, secretsKV, nil)
 
 			err := s.CreateEnvironment(ctx, test.Input)
 			if test.Error {
@@ -361,8 +352,8 @@ func TestCreateEnvironment(t *testing.T) {
 func TestPutDeployment(t *testing.T) {
 	initial := backend.NewTestKV()
 	ctx := context.Background()
-	err := state.PutModel(ctx, initial, state.ModelTypeDeployment, &state.Deployment{
-		Meta:              state.Meta{Name: "existing"},
+	err := putDeployment(ctx, initial, &model.Deployment{
+		Name:              "existing",
 		EnvironmentLabels: map[string]string{},
 		FunctionLabels:    map[string]string{},
 	})
@@ -370,7 +361,7 @@ func TestPutDeployment(t *testing.T) {
 
 	tests := []struct {
 		TestName string
-		Input    *state.Deployment
+		Input    *model.Deployment
 		Error    bool
 	}{
 		{
@@ -380,26 +371,21 @@ func TestPutDeployment(t *testing.T) {
 		},
 		{
 			TestName: "NoName",
-			Input:    &state.Deployment{},
+			Input:    &model.Deployment{},
 			Error:    true,
 		},
 		{
 			TestName: "New",
-			Input: &state.Deployment{
-				Meta:              state.Meta{Name: "new"},
+			Input: &model.Deployment{
+				Name:              "new",
 				EnvironmentLabels: map[string]string{"foo": "foo"},
 				FunctionLabels:    map[string]string{"bar": "bar"},
 			},
 		},
 		{
 			TestName: "Update",
-			Input: &state.Deployment{
-				Meta: state.Meta{
-					Name: "existing",
-					Labels: map[string]string{
-						"foo": "bar",
-					},
-				},
+			Input: &model.Deployment{
+				Name:              "existing",
 				EnvironmentLabels: map[string]string{"foo": "foo"},
 				FunctionLabels:    map[string]string{"bar": "bar"},
 			},
@@ -411,9 +397,7 @@ func TestPutDeployment(t *testing.T) {
 			ctx := context.Background()
 
 			kv := initial.Copy()
-			s := &Server{
-				StateStore: kv,
-			}
+			s := New(kv, nil, nil)
 
 			err := s.PutDeployment(ctx, test.Input)
 			if test.Error {

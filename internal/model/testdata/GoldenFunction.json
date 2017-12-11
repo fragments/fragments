@@ -1,0 +1,1 @@
+{"name":"foo","labels":{"foo":"foo"},"runtime":"go","checksum":"abc","source_filename":"file.tar.gz","aws":{"timeout":3,"memory":512}}
